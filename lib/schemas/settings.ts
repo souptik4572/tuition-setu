@@ -32,3 +32,15 @@ export const WorkspaceSettings = z.object({
 });
 export type WorkspaceSettings = z.input<typeof WorkspaceSettings>;
 export type WorkspaceSettingsData = z.output<typeof WorkspaceSettings>;
+
+/** Setup step B2 (§3 Stage B): the owner's profile plus the workspace's message settings. */
+export const SetupProfile = z.object({
+  displayName: z.string().trim().min(1, "Add your name so you can tell setups apart.").max(80),
+  signature: z.string().trim().min(1, "Add how you sign off — it goes at the end of every update.").max(80),
+  subjects: z.array(z.string().trim().min(1).max(40)).max(20),
+  defaultLanguage: Language,
+  tone: Tone,
+  reportDay: z.number().int().min(0).max(6),
+  includeFeeReminders: z.boolean(),
+});
+export type SetupProfile = z.infer<typeof SetupProfile>;

@@ -21,7 +21,7 @@ async function main() {
   const ids = await createWorkspaceWithOwner(settings, { userId, displayName: "Mita Sarkar", signature: "Mita Ma'am" });
   await loadSampleData({ ...ids, userId, role: "owner" });
   console.log(`Added "Mita's Tuition" with 6 sample students to ${env.DATABASE_PATH}.`);
-  console.log("It has no PIN yet: set one with `npm run reset-pin` (built in M4) before signing in.");
+  console.log("It has no PIN yet: set one with `npm run reset-pin` before signing in.");
 }
 
 main().catch((error) => {

@@ -55,12 +55,13 @@ let cache: { key: string; at: number; health: Health } | undefined;
 
 /**
  * GET /api/ai/health (§3 B4, IMPL M3). The plain check is cached for 30 seconds because banners on
- * every page read it; `test: true` always runs the sample note through both models.
+ * every page read it; `fresh` skips the cache (B4's "Check again" after a download), and `test`
+ * always runs the sample note through both models.
  */
-export async function getHealth(opts: { aiConfig?: AiConfig; test?: boolean; ctx?: DbCtx | null } = {}): Promise<Health> {
+export async function getHealth(opts: { aiConfig?: AiConfig; test?: boolean; fresh?: boolean; ctx?: DbCtx | null } = {}): Promise<Health> {
   const names = Object.fromEntries(TASKS.map((t) => [t, modelFor(t, opts.aiConfig)])) as Record<ModelTask, string>;
   const key = JSON.stringify(names);
-  if (!opts.test && cache?.key === key && Date.now() - cache.at < CACHE_MS) return cache.health;
+  if (!opts.test && !opts.fresh && cache?.key === key && Date.now() - cache.at < CACHE_MS) return cache.health;
 
   const provider = getProvider();
   const { reachable, sizes } = await installedModels(provider);

@@ -21,3 +21,8 @@ export async function getLocalOwner(): Promise<Member | null> {
 export async function updateMemberProfile(ctx: DbCtx, profile: { displayName: string; signature: string }) {
   return withDb(ctx, async (db) => (await db.update(members).set(profile).where(own(members, ctx, ctx.memberId)).returning())[0] ?? null);
 }
+
+/** `npm run reset-pin` and, later, Change PIN (M18). */
+export async function setMemberSecret(ctx: DbCtx, secret: { pinHash: string; pinSalt: string; pinKind: "pin" | "passphrase" }) {
+  await withDb(ctx, (db) => db.update(members).set(secret).where(own(members, ctx, ctx.memberId)));
+}

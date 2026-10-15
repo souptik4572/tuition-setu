@@ -1,19 +1,18 @@
-import { afterEach, describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { getHealth } from "./health";
 import { DEFAULT_MODELS } from "./models";
 import { OllamaProvider } from "./ollama";
 import type { AIProvider } from "./provider";
 import { fakeFetch, json, ndjson, type Route } from "./test-fetch";
 
-const g = globalThis as typeof globalThis & { __tsAiProvider?: AIProvider };
+let provider: AIProvider;
+vi.mock("./index", async (original) => ({ ...(await original<typeof import("./index")>()), getProvider: () => provider }));
+
 const useOllama = (routes: Record<string, Route>) => {
   const f = fakeFetch(routes);
-  g.__tsAiProvider = new OllamaProvider({ host: "http://127.0.0.1:11434", fetch: f.fetch });
+  provider = new OllamaProvider({ host: "http://127.0.0.1:11434", fetch: f.fetch });
   return f;
 };
-afterEach(() => {
-  delete g.__tsAiProvider;
-});
 
 const tags = (...names: string[]) => () => json({ models: names.map((name) => ({ name, model: name, size: 4_600_000_000, details: {} })) });
 
@@ -106,6 +105,15 @@ describe("getHealth", () => {
             }),
     });
     expect((await getHealth({ test: true })).test).toMatchObject({ ok: false, numbersOk: false, wrote: "Riya scored 18/20." });
+  });
+
+  it("answers from a 30-second cache unless asked for a fresh check", async () => {
+    const aiConfig = { extract: "cache-case" };
+    useOllama({ "/api/tags": tags() });
+    expect((await getHealth({ aiConfig })).models[0].installed).toBe(false);
+    useOllama({ "/api/tags": tags("cache-case") });
+    expect((await getHealth({ aiConfig })).models[0].installed).toBe(false);
+    expect((await getHealth({ aiConfig, fresh: true })).models[0].installed).toBe(true);
   });
 
   it("skips the sample test when a model is missing", async () => {

@@ -6,14 +6,17 @@ import { OllamaProvider } from "./ollama";
 import { OpenAICompatibleProvider } from "./openai-compatible";
 import type { AIProvider } from "./provider";
 
-const g = globalThis as typeof globalThis & { __tsAiProvider?: AIProvider };
+// Deliberately not on globalThis: Next bundles pages and route handlers separately, and a provider
+// made by one bundle fails the other's instanceof checks (its class and the error classes it
+// throws are different copies). It only holds small caches, so one per bundle costs nothing.
+let provider: AIProvider | undefined;
 
 export function getProvider(): AIProvider {
-  g.__tsAiProvider ??=
+  provider ??=
     env.AI_PROVIDER === "openai-compatible"
       ? new OpenAICompatibleProvider({ baseURL: env.OPENAI_COMPAT_BASE_URL!, apiKey: env.OPENAI_COMPAT_API_KEY })
       : new OllamaProvider({ host: env.OLLAMA_HOST });
-  return g.__tsAiProvider;
+  return provider;
 }
 
 /** The address the AI runs at, for the "AI runs outside this device" check (§2.2). */

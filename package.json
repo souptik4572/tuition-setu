@@ -11,7 +11,8 @@
     "test:watch": "vitest",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "tsx --conditions=react-server scripts/migrate.ts",
-    "db:seed": "tsx --conditions=react-server scripts/seed.ts"
+    "db:seed": "tsx --conditions=react-server scripts/seed.ts",
+    "reset-pin": "tsx --conditions=react-server scripts/reset-pin.ts"
   },
   "dependencies": {
     "better-sqlite3": "^13.0.3",

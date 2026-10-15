@@ -4,7 +4,10 @@ import { Banner } from "@/components/ts/banner";
 import { Key } from "@/components/ts/key";
 import { MessageBubble } from "@/components/ts/message-bubble";
 import { StatusChip, type Status } from "@/components/ts/status-chip";
+import { requirePageMember } from "@/lib/auth/require-member";
+import { getMember } from "@/lib/db/queries/members";
 import { env } from "@/lib/env";
+import { logout } from "./login/actions";
 
 // Foundations check (IMPL M1). The dashboard replaces this page in M6.
 
@@ -25,13 +28,22 @@ function Section({ title, children }: { title: string; children: ReactNode }) {
   );
 }
 
-export default function Home() {
+export default async function Home() {
+  const ctx = await requirePageMember();
+  const member = await getMember(ctx, ctx.memberId);
   return (
-    <AppShell aiName={env.MODEL_DRAFT ?? "no model chosen yet"} userName="Mita Sarkar">
+    <AppShell aiName={env.MODEL_DRAFT ?? "no model chosen yet"} userName={member?.displayName}>
       <div className="mx-auto flex max-w-[1328px] flex-col gap-8 px-4 py-8 lg:px-6">
-        <header className="flex flex-col gap-1">
-          <h1 className="font-display text-5xl leading-[1.1] font-extrabold tracking-[-1.2px] text-ink-strong">TuitionSetu</h1>
-          <p className="text-muted-foreground">Foundations check. The dashboard replaces this page in M6.</p>
+        <header className="flex flex-wrap items-start justify-between gap-4">
+          <div className="flex flex-col gap-1">
+            <h1 className="font-display text-5xl leading-[1.1] font-extrabold tracking-[-1.2px] text-ink-strong">TuitionSetu</h1>
+            <p className="text-muted-foreground">Foundations check. The dashboard replaces this page in M6.</p>
+          </div>
+          <form action={logout}>
+            <Key type="submit" variant="secondary">
+              Sign out
+            </Key>
+          </form>
         </header>
 
         <Section title="Type · three scripts">

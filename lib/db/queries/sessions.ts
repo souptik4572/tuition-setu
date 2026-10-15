@@ -35,3 +35,9 @@ export async function revokeAllSessions(workspaceId: string): Promise<number> {
   const now = new Date().toISOString();
   return withDb(BEFORE_SIGN_IN, async (db) => (await db.update(sessions).set({ revokedAt: now }).where(and(eq(sessions.workspaceId, workspaceId), isNull(sessions.revokedAt))).returning({ id: sessions.id })).length);
 }
+
+/** Sign out (this device): the cookie's own token identifies the session. */
+export async function revokeSessionByTokenHash(tokenHash: string): Promise<void> {
+  const now = new Date().toISOString();
+  await withDb(BEFORE_SIGN_IN, (db) => db.update(sessions).set({ revokedAt: now }).where(and(eq(sessions.tokenHash, tokenHash), isNull(sessions.revokedAt))));
+}

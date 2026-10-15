@@ -12,6 +12,9 @@ export const DEFAULT_MODELS: Record<ModelTask, string> = {
 
 export const QUALITY_DRAFT_MODEL = "gemma4:e4b";
 
+/** The defaults are sized for an 8 GB laptop (§11.2); B4 warns below it. */
+export const MIN_RAM_GB = 8;
+
 /** Laptops with more RAM than this are offered quality mode (§3 B4). */
 export const QUALITY_MODE_MIN_RAM_GB = 12;
 
