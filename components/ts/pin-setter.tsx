@@ -1,10 +1,11 @@
 "use client";
 
 import { Eye, EyeOff, KeyRound, Hash } from "lucide-react";
+import { useRef, useState } from "react";
 import { PASSPHRASE_MIN, passphraseLength, validateSecret, type Secret } from "@/lib/schemas/secret";
 import { cn } from "@/lib/utils";
 import { FieldError, FieldOk, helpClass, inputClass, labelClass } from "./field";
-import { PinBoxes, pinInputClass } from "./pin-pad";
+import { PinBoxes, pinDigits, pinInputClass, useDigitsGoTo } from "./pin-pad";
 
 export type PinSetterValue = { mode: "pin" | "passphrase"; p1: string; p2: string; a1: string; a2: string; show: boolean };
 
@@ -39,11 +40,17 @@ export function pinSetterResult(v: PinSetterValue): { secret: Secret | null; why
 
 const linkKey = "inline-flex min-h-11 cursor-pointer items-center gap-2 self-start text-base font-extrabold text-ocean";
 
-/** Choose a PIN or passphrase and type it twice (G2 ×4). The parent owns the value and the Save key. */
+/**
+ * Choose a PIN or passphrase and type it twice (G2 ×4). The parent owns the value and the Save key.
+ * Focus follows the typing: the first row on arrival, the second once the first holds a usable PIN.
+ */
 export function PinSetter({ value: v, onChange }: { value: PinSetterValue; onChange: (v: PinSetterValue) => void }) {
   const set = (patch: Partial<PinSetterValue>) => onChange({ ...v, ...patch });
   const c = check(v);
-  const digits = (s: string) => s.replace(/\D/g, "").slice(0, 6);
+  const row1 = useRef<HTMLInputElement>(null);
+  const row2 = useRef<HTMLInputElement>(null);
+  const [focusedRow, setFocusedRow] = useState<1 | 2 | null>(null);
+  useDigitsGoTo(() => (v.mode !== "pin" ? null : v.p1.length < 6 || c.easy ? row1.current : row2.current));
   const noun = v.mode === "pin" ? "PIN" : "passphrase";
 
   const showToggle = (
@@ -60,7 +67,6 @@ export function PinSetter({ value: v, onChange }: { value: PinSetterValue; onCha
   );
 
   if (v.mode === "pin") {
-    const active = v.p1.length < 6 ? 1 : v.p2.length < 6 && !c.easy ? 2 : 0;
     return (
       <div className="flex flex-col gap-[22px]">
         <div className="flex flex-col gap-2">
@@ -71,16 +77,23 @@ export function PinSetter({ value: v, onChange }: { value: PinSetterValue; onCha
             {showToggle}
           </div>
           <div className="relative h-[60px] w-full max-w-[352px] rounded-[10px] focus-within:shadow-[0_0_0_3px_var(--sky-tint)]">
-            <PinBoxes value={v.p1} size="setter" show={v.show} active={active === 1} bad={c.easy} />
+            <PinBoxes value={v.p1} size="setter" show={v.show} focused={focusedRow === 1} bad={c.easy} />
             <input
+              ref={row1}
               id="pin1"
               type={v.show ? "text" : "password"}
               inputMode="numeric"
               pattern="[0-9]*"
               autoComplete="new-password"
-              maxLength={6}
+              autoFocus
               value={v.p1}
-              onChange={(e) => set({ p1: digits(e.target.value) })}
+              onChange={(e) => {
+                const p1 = pinDigits(e.target.value);
+                set({ p1 });
+                if (p1.length === 6 && validateSecret({ kind: "pin", value: p1 }) !== "easy") row2.current?.focus();
+              }}
+              onFocus={() => setFocusedRow(1)}
+              onBlur={() => setFocusedRow(null)}
               aria-invalid={c.easy}
               aria-describedby="pin1-msg"
               className={pinInputClass}
@@ -102,16 +115,21 @@ export function PinSetter({ value: v, onChange }: { value: PinSetterValue; onCha
             Enter it again
           </label>
           <div className="relative h-[60px] w-full max-w-[352px] rounded-[10px] focus-within:shadow-[0_0_0_3px_var(--sky-tint)]">
-            <PinBoxes value={v.p2} size="setter" show={v.show} active={active === 2} bad={c.pinMismatch} />
+            <PinBoxes value={v.p2} size="setter" show={v.show} focused={focusedRow === 2} bad={c.pinMismatch} />
             <input
+              ref={row2}
               id="pin2"
               type={v.show ? "text" : "password"}
               inputMode="numeric"
               pattern="[0-9]*"
               autoComplete="new-password"
-              maxLength={6}
               value={v.p2}
-              onChange={(e) => set({ p2: digits(e.target.value) })}
+              onChange={(e) => set({ p2: pinDigits(e.target.value) })}
+              onKeyDown={(e) => {
+                if (e.key === "Backspace" && !v.p2) row1.current?.focus();
+              }}
+              onFocus={() => setFocusedRow(2)}
+              onBlur={() => setFocusedRow(null)}
               aria-invalid={c.pinMismatch}
               aria-describedby="pin2-msg"
               className={pinInputClass}
@@ -124,7 +142,7 @@ export function PinSetter({ value: v, onChange }: { value: PinSetterValue; onCha
                 type="button"
                 onClick={() => {
                   set({ p1: "", p2: "" });
-                  document.getElementById("pin1")?.focus();
+                  row1.current?.focus();
                 }}
                 className="h-11 cursor-pointer px-1 text-ocean underline"
               >

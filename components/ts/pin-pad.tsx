@@ -1,18 +1,57 @@
 "use client";
 
 import { Delete } from "lucide-react";
-import { useEffect, useRef, type ReactNode } from "react";
+import { useEffect, useEffectEvent, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
+import { normalizeDigits } from "@/lib/util/digits";
 import { cn } from "@/lib/utils";
+
+/** Up to six digits from whatever was typed, pasted or autofilled; Bengali and Hindi keyboards type their own digits. */
+export const pinDigits = (s: string) => normalizeDigits(s).replace(/\D/g, "").slice(0, 6);
+
+const finePointer = () => window.matchMedia("(pointer: fine)");
+
+/** A mouse or trackpad means a keyboard to type on; touch phones use the on-screen keys. Null until mounted. */
+function useKeyboardDevice(): boolean | null {
+  return useSyncExternalStore(
+    (onChange) => {
+      const query = finePointer();
+      query.addEventListener("change", onChange);
+      return () => query.removeEventListener("change", onChange);
+    },
+    () => finePointer().matches,
+    () => null,
+  );
+}
+
+/**
+ * Digits typed while nothing editable has focus go to the PIN, so a laptop user can type without
+ * clicking a box first, or right after pressing Show or Forgot PIN. Focusing during keydown makes
+ * the browser deliver that same key to the field.
+ */
+export function useDigitsGoTo(target: () => HTMLInputElement | null) {
+  const focus = useEffectEvent(() => target()?.focus());
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.metaKey || e.ctrlKey || e.altKey || !/^[0-9০-৯०-९]$/.test(e.key)) return;
+      if (e.target instanceof Element && e.target.closest("input, textarea, select, [contenteditable]")) return;
+      focus();
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, []);
+}
 
 /**
  * Six boxes drawn over one real input (IMPL §6.4), so typing, pasting, password managers and
  * screen readers all work. `pad` is the sign-in size (M1); `setter` the wider setup rows (G2).
+ * The next box lights up only while `focused`: lit boxes over an unfocused input invite typing
+ * that goes nowhere.
  */
 export function PinBoxes({
   value,
   size,
   show = false,
-  active = true,
+  focused,
   bad = false,
   locked = false,
   shakeKey,
@@ -20,7 +59,7 @@ export function PinBoxes({
   value: string;
   size: "pad" | "setter";
   show?: boolean;
-  active?: boolean;
+  focused: boolean;
   bad?: boolean;
   locked?: boolean;
   shakeKey?: number;
@@ -33,7 +72,7 @@ export function PinBoxes({
     >
       {Array.from({ length: 6 }, (_, i) => {
         const digit = value[i];
-        const next = active && !locked && i === value.length;
+        const next = focused && !locked && i === value.length;
         return (
           <span
             key={i}
@@ -89,16 +128,19 @@ export function PinPad({
 }) {
   const timer = useRef<ReturnType<typeof setTimeout>>(undefined);
   const input = useRef<HTMLInputElement>(null);
+  const [focused, setFocused] = useState(false);
+  const keyboard = useKeyboardDevice();
   const disabled = locked || busy;
 
   useEffect(() => () => clearTimeout(timer.current), []);
   useEffect(() => {
-    // Phones get the keypad instead, so only a wide screen takes focus (and its keyboard).
-    if (!locked && window.matchMedia("(min-width: 1024px)").matches) input.current?.focus();
-  }, [locked]);
+    // Phones use the keypad, so only a keyboard device takes focus; a phone's own keyboard stays closed.
+    if (!locked && keyboard) input.current?.focus();
+  }, [locked, keyboard]);
+  useDigitsGoTo(() => input.current);
 
   const update = (next: string) => {
-    const digits = next.replace(/\D/g, "").slice(0, 6);
+    const digits = pinDigits(next);
     clearTimeout(timer.current);
     onChange(digits);
     if (digits.length === 6) timer.current = setTimeout(() => onComplete(digits), 160);
@@ -114,7 +156,7 @@ export function PinPad({
   return (
     <div className="flex flex-col gap-5">
       <div className="relative h-14 w-[304px] self-center rounded-md focus-within:shadow-[0_0_0_3px_var(--sky-tint)]">
-        <PinBoxes value={value} size="pad" bad={error && !value} locked={locked} shakeKey={errorKey} />
+        <PinBoxes value={value} size="pad" focused={focused || keyboard === false} bad={error && !value} locked={locked} shakeKey={errorKey} />
         <input
           ref={input}
           id={id}
@@ -122,10 +164,13 @@ export function PinPad({
           inputMode="numeric"
           pattern="[0-9]*"
           autoComplete="current-password"
-          maxLength={6}
           value={value}
-          disabled={disabled}
+          // Read-only while checking, not disabled: a disabled field drops focus, and the next try would type into nothing.
+          disabled={locked}
+          readOnly={busy}
           onChange={(e) => update(e.target.value)}
+          onFocus={() => setFocused(true)}
+          onBlur={() => setFocused(false)}
           aria-describedby={describedBy}
           className={pinInputClass}
         />

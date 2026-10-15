@@ -162,7 +162,8 @@ export function LoginScreen({ firstName, kind, lockedForMs, reset }: { firstName
                   autoComplete="current-password"
                   autoFocus
                   value={value}
-                  disabled={locked || pending}
+                  disabled={locked}
+                  readOnly={pending}
                   onChange={(e) => setValue(e.target.value)}
                   aria-invalid={wrong}
                   aria-describedby="login-msg"
