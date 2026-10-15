@@ -1,9 +1,13 @@
+import type { BetterSQLite3Database } from "drizzle-orm/better-sqlite3";
 import type { Ctx } from "@/lib/auth/types";
 
 export type SystemCtx = { workspaceId: string; memberId: string; system: true };
 
-// M2 replaces this with the Drizzle SQLite instance type; queries are written
-// once against it and the Postgres instance is cast to it (IMPL §3.2).
-export type Db = unknown;
+/** What a query needs from the caller: whose workspace, and who is acting. */
+export type DbCtx = Ctx | SystemCtx;
 
-export type WithDb = <T>(ctx: Ctx | SystemCtx, fn: (db: Db) => Promise<T>) => Promise<T>;
+// Queries are written once against the SQLite types; hosted mode casts its Postgres instance to
+// this type (IMPL §3.2). Never use the SQLite-only .all() / .get() / .run() / .values().
+export type Db = BetterSQLite3Database;
+
+export type WithDb = <T>(ctx: DbCtx, fn: (db: Db) => Promise<T>) => Promise<T>;

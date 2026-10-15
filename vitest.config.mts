@@ -13,6 +13,7 @@ export default defineConfig({
   },
   test: {
     environment: "node",
+    env: { DATABASE_PATH: ":memory:" },
     setupFiles: ["./vitest.setup.ts"],
     exclude: ["node_modules/**", ".next/**"],
   },
