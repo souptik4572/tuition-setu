@@ -21,6 +21,8 @@
     "libphonenumber-js": "^1.13.15",
     "lucide-react": "^1.57.0",
     "next": "16.4.1",
+    "ollama": "^0.6.4",
+    "openai": "^7.34.0",
     "radix-ui": "^1.8.1",
     "react": "19.3.0",
     "react-dom": "19.3.0",
