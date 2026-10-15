@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { env } from "@/lib/env";
+import { cn } from "@/lib/utils";
 import { AppMark } from "./app-mark";
 import { DesktopNav, PhoneNav } from "./nav-links";
 import { StatusPill } from "./status-pill";
@@ -18,8 +19,9 @@ function initials(name: string) {
 /**
  * Desktop: top bar with nav, AI pill and avatar. Phone: bottom nav with the raised Capture key;
  * the settings icon belongs to each page's own header (M2). Hosted-only pieces render only in hosted mode.
+ * Full-screen phone forms (R1) turn the bottom nav off with `phoneNav={false}`.
  */
-export function AppShell({ children, aiName, userName }: { children: ReactNode; aiName?: string; userName?: string }) {
+export function AppShell({ children, aiName, userName, phoneNav = true }: { children: ReactNode; aiName?: string; userName?: string; phoneNav?: boolean }) {
   const hosted = env.APP_MODE === "hosted";
   return (
     <div className="flex min-h-dvh flex-col">
@@ -52,8 +54,8 @@ export function AppShell({ children, aiName, userName }: { children: ReactNode; 
           </div>
         </div>
       </header>
-      <main className="flex-1 pb-[calc(110px+env(safe-area-inset-bottom))] lg:pb-16">{children}</main>
-      <PhoneNav />
+      <main className={cn("flex-1 lg:pb-16", phoneNav && "pb-[calc(110px+env(safe-area-inset-bottom))]")}>{children}</main>
+      {phoneNav && <PhoneNav />}
     </div>
   );
 }

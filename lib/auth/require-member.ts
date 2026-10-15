@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { getMember } from "@/lib/db/queries/members";
 import { env } from "@/lib/env";
 import { SESSION_COOKIE, validateSession } from "./local/session";
-import { AuthError, ROLE_RANK, type Ctx, type Role } from "./types";
+import { AuthError, ROLE_RANK, type ActionResult, type Ctx, type Role } from "./types";
 
 /**
  * The signed-in member, checked against the database on every call (§9.2: the proxy only looks
@@ -31,4 +31,20 @@ export async function requirePageMember(minRole: Role = "assistant"): Promise<Ct
     if (error instanceof AuthError && error.code === "unauthenticated") redirect("/login");
     throw error;
   }
+}
+
+/**
+ * For Server Actions, which return a result instead of throwing to the client (IMPL §3.1): runs
+ * `fn` as the member, or says why it can't. `forbidden` names who can do it instead.
+ */
+export async function asMember<T>(minRole: Role, forbidden: string, fn: (ctx: Ctx) => Promise<ActionResult<T>>): Promise<ActionResult<T>> {
+  let ctx: Ctx;
+  try {
+    ctx = await requireMember(minRole);
+  } catch (error) {
+    if (!(error instanceof AuthError)) throw error;
+    if (error.code === "forbidden") return { ok: false, error: { code: "forbidden", message: forbidden } };
+    return { ok: false, error: { code: "unauthenticated", message: "You've been signed out. Sign in again, then try once more." } };
+  }
+  return fn(ctx);
 }

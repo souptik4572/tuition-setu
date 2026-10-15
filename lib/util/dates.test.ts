@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { addDays, cycleRangeFor, formatRange, todayIn } from "./dates";
+import { addDays, cycleRangeFor, formatDay, formatRange, todayIn } from "./dates";
 
 describe("todayIn", () => {
   it("uses the workspace time zone, not UTC", () => {
@@ -37,5 +37,12 @@ describe("formatRange", () => {
   it("keeps Latin digits in Bengali and Hindi", () => {
     expect(formatRange("2026-10-12", "2026-10-18", "bn")).toMatch(/^12–18 \D+$/);
     expect(formatRange("2026-10-12", "2026-10-18", "hi")).toMatch(/^12–18 \D+$/);
+  });
+});
+
+describe("formatDay", () => {
+  it("writes the weekday, day and month", () => {
+    expect(formatDay("2026-10-15")).toBe("Thu 15 Oct");
+    expect(formatDay("2026-09-07")).toBe("Mon 7 Sep");
   });
 });

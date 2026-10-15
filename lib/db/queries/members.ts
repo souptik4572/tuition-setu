@@ -1,4 +1,4 @@
-import { and, eq } from "drizzle-orm";
+import { and, asc, eq } from "drizzle-orm";
 import { withDb } from "../client";
 import { members } from "../schema";
 import type { DbCtx } from "../types";
@@ -16,6 +16,19 @@ export async function getMember(ctx: DbCtx, memberId: string): Promise<Member | 
  */
 export async function getLocalOwner(): Promise<Member | null> {
   return withDb(BEFORE_SIGN_IN, async (db) => (await db.select().from(members).where(and(eq(members.role, "owner"), eq(members.status, "active"))).limit(1))[0] ?? null);
+}
+
+/** For "Only the owner, Mita, can delete a student permanently" (R3-Teacher). */
+export async function getOwnerName(ctx: DbCtx): Promise<string | null> {
+  return withDb(ctx, async (db) => {
+    const [owner] = await db
+      .select({ displayName: members.displayName })
+      .from(members)
+      .where(and(eq(members.workspaceId, ctx.workspaceId), eq(members.role, "owner"), eq(members.status, "active")))
+      .orderBy(asc(members.createdAt))
+      .limit(1);
+    return owner?.displayName ?? null;
+  });
 }
 
 export async function updateMemberProfile(ctx: DbCtx, profile: { displayName: string; signature: string }) {

@@ -1,6 +1,6 @@
 import { and, desc, eq, max } from "drizzle-orm";
 import { withDb } from "../client";
-import { drafts } from "../schema";
+import { cycles, drafts } from "../schema";
 import type { DbCtx } from "../types";
 import { own } from "./scope";
 
@@ -51,6 +51,20 @@ export async function listLiveDrafts(ctx: DbCtx, cycleId: string): Promise<Map<s
   const live = new Map<string, Draft>();
   for (const row of rows) if (!live.has(row.studentId)) live.set(row.studentId, row);
   return live;
+}
+
+/** The student's live draft in each week, newest week first: the profile's Messages tab (R3). */
+export async function listStudentDrafts(ctx: DbCtx, studentId: string) {
+  const rows = await withDb(ctx, (db) =>
+    db
+      .select({ draft: drafts, cycle: cycles })
+      .from(drafts)
+      .innerJoin(cycles, eq(cycles.id, drafts.cycleId))
+      .where(and(eq(drafts.workspaceId, ctx.workspaceId), eq(drafts.studentId, studentId)))
+      .orderBy(desc(cycles.startsOn), desc(drafts.version)),
+  );
+  const seen = new Set<string>();
+  return rows.filter(({ cycle }) => !seen.has(cycle.id) && seen.add(cycle.id));
 }
 
 export async function updateDraft(ctx: DbCtx, id: string, patch: DraftPatch): Promise<Draft | null> {

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { normalizePhone } from "./phone";
+import { formatPhone, normalizePhone } from "./phone";
 
 describe("normalizePhone", () => {
   it.each(["+91 98000-00001", "098000 00001", "+919800000001", "919800000001"])("tidies %s to an Indian number", (input) => {
@@ -31,5 +31,12 @@ describe("normalizePhone", () => {
     expect(normalizePhone("98000abc01")).toMatchObject({ ok: false, reason: "invalid" });
     expect(normalizePhone("98000000011234")).toMatchObject({ ok: false, reason: "invalid" });
     expect(normalizePhone("+1 2")).toMatchObject({ ok: false, reason: "invalid" });
+  });
+});
+
+describe("formatPhone", () => {
+  it("shows a stored number the way the form shows it", () => {
+    expect(formatPhone("919800000001")).toBe("+91 98000 00001");
+    expect(formatPhone("447700900123")).toBe("+44 7700 900123");
   });
 });

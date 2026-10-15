@@ -40,3 +40,10 @@ export function formatRange(from: string, to: string, lang: keyof typeof LOCALES
   const b = dayAndMonth(to, lang);
   return a.month === b.month ? `${a.day}–${b.day} ${b.month}` : `${a.day} ${a.month}–${b.day} ${b.month}`;
 }
+
+/** "Thu 15 Oct": score dates on the profile and the day a student was archived. */
+export function formatDay(ymd: string): string {
+  const { day, month } = dayAndMonth(ymd, "en");
+  const weekday = new Intl.DateTimeFormat("en-US", { weekday: "short", timeZone: "UTC" }).format(toUtc(ymd));
+  return `${weekday} ${day} ${month}`;
+}

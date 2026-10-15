@@ -39,3 +39,9 @@ export function normalizePhone(input: string): PhoneResult {
   if (local.length < 10) return { ok: false, reason: "too_short", digitCount: local.length };
   return { ok: false, reason: "invalid", digitCount: local.length };
 }
+
+/** A stored number as people read it: "+91 98000 00001", "+44 7700 900123". */
+export function formatPhone(digits: string): string {
+  const phone = normalizePhone(`+${digits}`);
+  return phone.ok ? phone.display : `+${digits}`;
+}

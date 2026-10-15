@@ -6,16 +6,18 @@ import { withDb } from "../client";
 import { cycles } from "../schema";
 import { insertAssessments, listStudentAssessments } from "./assessments";
 import { getCycle, getOpenCycle, openCycleFor, setCycleStatus } from "./cycles";
-import { getDraft, getLiveDraft, insertDraft, listLiveDrafts } from "./drafts";
+import { getDraft, getLiveDraft, insertDraft, listLiveDrafts, listStudentDrafts } from "./drafts";
 import { insertEntries, listCycleEntries } from "./entries";
-import { getLocalOwner } from "./members";
+import { getLocalOwner, getOwnerName } from "./members";
 import { createNote, getNote, listNotesByStatus } from "./notes";
 import { findSessionByTokenHash, insertSession, revokeAllSessions } from "./sessions";
 import {
   archiveStudent,
+  countActiveStudents,
   createStudent,
   deleteStudent,
   getStudent,
+  historyWeeks,
   listStudents,
   restoreStudent,
   studentsSharingPhone,
@@ -85,13 +87,40 @@ describe("workspace isolation", () => {
 });
 
 describe("students", () => {
-  it("archives with a date and restores", async () => {
+  it("archives with a date, out of every active list, and restores", async () => {
     const a = await newWorkspace("A");
     const s = await createStudent(a, riya());
+    const sibling = await createStudent(a, { ...riya(), fullName: "Rohan Sen", messageName: "Rohan" });
     expect((await archiveStudent(a, s.id))?.archivedAt).toMatch(/^\d{4}-/);
-    expect(await listStudents(a)).toEqual([]);
+    expect((await listStudents(a)).map((x) => x.id)).toEqual([sibling.id]);
+    expect(await countActiveStudents(a)).toBe(1);
+    expect(await studentsSharingPhone(a, "919800000001", sibling.id)).toEqual([]);
     expect(await listStudents(a, "archived")).toHaveLength(1);
+
     expect(await restoreStudent(a, s.id)).toMatchObject({ status: "active", archivedAt: null });
+    expect(await countActiveStudents(a)).toBe(2);
+    expect(await studentsSharingPhone(a, "919800000001", sibling.id)).toEqual([{ id: s.id, fullName: "Riya Sen" }]);
+  });
+
+  it("counts weeks of history from notes and updates, once per week", async () => {
+    const a = await newWorkspace("A");
+    const s = await createStudent(a, riya());
+    const other = await createStudent(a, { ...riya(), fullName: "Arjun Das", messageName: "Arjun" });
+    const first = await openCycleFor(a, "2026-10-08");
+    const note = await createNote(a, { cycleId: first.id, source: "typed", classDate: "2026-10-08", rawText: "Riya ch5 test 14/20" });
+    await insertEntries(a, [{ noteInputId: note.id, cycleId: first.id, nameAsWritten: "Riya", studentId: s.id, resolution: "exact", payloadJson: entryPayload }]);
+    await insertDraft(a, { cycleId: first.id, studentId: s.id, language: "bn", status: "sent" });
+    await setCycleStatus(a, first.id, "completed");
+    const second = await openCycleFor(a, "2026-10-15");
+    await insertDraft(a, { cycleId: second.id, studentId: s.id, language: "bn", status: "stale", bodyModel: "old" });
+    await insertDraft(a, { cycleId: second.id, studentId: s.id, language: "bn", status: "ready", bodyModel: "new" });
+
+    expect(await historyWeeks(a, [s.id, other.id])).toEqual(new Map([[s.id, 2], [other.id, 0]]));
+    expect((await listStudentDrafts(a, s.id)).map(({ draft, cycle }) => [cycle.label, draft.bodyModel])).toEqual([
+      ["12–18 Oct", "new"],
+      ["5–11 Oct", ""],
+    ]);
+    expect(await historyWeeks(await newWorkspace("B"), [s.id])).toEqual(new Map([[s.id, 0]]));
   });
 
   it("finds siblings sharing a number, but not the student itself", async () => {
@@ -156,6 +185,7 @@ describe("setup and sessions", () => {
     expect(await hasWorkspace()).toBe(true);
     expect((await getWorkspace(a))?.name).toBe("Mita's Tuition");
     expect((await getLocalOwner())?.role).toBe("owner");
+    expect(await getOwnerName(a)).toBe("Mita's Tuition owner");
   });
 
   it("revokes every session in one workspace only", async () => {

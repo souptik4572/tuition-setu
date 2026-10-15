@@ -1,7 +1,7 @@
-import { and, asc, count, eq, ne } from "drizzle-orm";
+import { and, asc, count, eq, inArray, ne } from "drizzle-orm";
 import type { StudentData } from "@/lib/schemas/student";
 import { withDb } from "../client";
-import { students } from "../schema";
+import { drafts, extractedEntries, students } from "../schema";
 import type { DbCtx } from "../types";
 import { own } from "./scope";
 
@@ -76,4 +76,22 @@ export async function studentsSharingPhone(ctx: DbCtx, digits: string, exceptId?
         ),
       ),
   );
+}
+
+/** Weeks with notes or updates for each student: "{w} weeks of history" on archive and delete (R4, R5). */
+export async function historyWeeks(ctx: DbCtx, studentIds: string[]): Promise<Map<string, number>> {
+  if (studentIds.length === 0) return new Map();
+  const rows = await withDb(ctx, async (db) => [
+    ...(await db
+      .selectDistinct({ studentId: extractedEntries.studentId, cycleId: extractedEntries.cycleId })
+      .from(extractedEntries)
+      .where(and(eq(extractedEntries.workspaceId, ctx.workspaceId), inArray(extractedEntries.studentId, studentIds)))),
+    ...(await db
+      .selectDistinct({ studentId: drafts.studentId, cycleId: drafts.cycleId })
+      .from(drafts)
+      .where(and(eq(drafts.workspaceId, ctx.workspaceId), inArray(drafts.studentId, studentIds)))),
+  ]);
+  const weeks = new Map(studentIds.map((id) => [id, new Set<string>()]));
+  for (const row of rows) if (row.studentId) weeks.get(row.studentId)?.add(row.cycleId);
+  return new Map([...weeks].map(([id, cycles]) => [id, cycles.size]));
 }
