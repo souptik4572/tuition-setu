@@ -3,7 +3,8 @@ import { notFound } from "next/navigation";
 import { AppShell } from "@/components/ts/app-shell";
 import { requirePageMember } from "@/lib/auth/require-member";
 import { getStudent } from "@/lib/db/queries/students";
-import { loadFormOptions, loadShell } from "../../data";
+import { loadShell } from "@/app/shell";
+import { loadFormOptions } from "../../data";
 import { StudentFormPage } from "../../form-page";
 
 export const metadata: Metadata = { title: "Edit student · TuitionSetu" };

@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { AppShell } from "@/components/ts/app-shell";
 import { requirePageMember } from "@/lib/auth/require-member";
-import { loadFormOptions, loadShell } from "../data";
+import { loadShell } from "@/app/shell";
+import { loadFormOptions } from "../data";
 import { StudentFormPage } from "../form-page";
 
 export const metadata: Metadata = { title: "Add a student · TuitionSetu" };

@@ -24,3 +24,6 @@ export const DOWNLOAD_GB: Record<string, number> = {
   "gemma4:e4b": 6.6,
   "gemma4:12b": 7.7,
 };
+
+/** Models a failed note can be read again with ("Try the other model"), when one is installed (M7 revisits the list). */
+export const READING_CANDIDATES = ["gemma4:latest", "gemma4:e4b", "gemma4:12b", "qwen3.5:9b"];

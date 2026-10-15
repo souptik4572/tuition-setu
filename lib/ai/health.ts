@@ -8,7 +8,7 @@ import { extractNumbers } from "@/lib/util/digits";
 import { isLoopbackHost } from "@/lib/util/lan";
 import { AiError, toAiError, type AiErrorCode } from "./errors";
 import { getProvider, modelFor, providerUrl } from "./index";
-import { DOWNLOAD_GB, QUALITY_MODE_MIN_RAM_GB, type ModelTask } from "./models";
+import { DOWNLOAD_GB, QUALITY_MODE_MIN_RAM_GB, READING_CANDIDATES, type ModelTask } from "./models";
 import { OllamaProvider } from "./ollama";
 import { OpenAICompatibleProvider } from "./openai-compatible";
 import { extractPrompt, EXTRACT_PROMPT_VERSION } from "./prompts/extract";
@@ -145,4 +145,26 @@ async function writeSentence(provider: AIProvider, model: string, facts: string,
     await recordAiRun(ctx, { task: "health", provider: provider.name, model, inputChars: facts.length }, { durationMs: Date.now() - started, error: toAiError(error) });
     throw error;
   }
+}
+
+/**
+ * Another installed model that can read notes, for a note that failed with the current one
+ * (§4.1, F2). Tags with the same digest are the same model, so they don't count. `faster` when
+ * it's smaller than the current model. Null when there's none, or the provider can't list models.
+ */
+export async function alternateModel(aiConfig?: AiConfig): Promise<{ name: string; faster: boolean } | null> {
+  const provider = getProvider();
+  if (!(provider instanceof OllamaProvider)) return null;
+  try {
+    const { models } = await provider.client(AbortSignal.timeout(LIST_TIMEOUT_MS)).list();
+    const byName = new Map(models.map((m) => [withTag(m.name), m]));
+    const current = byName.get(withTag(modelFor("extract", aiConfig)));
+    for (const name of READING_CANDIDATES) {
+      const other = byName.get(withTag(name));
+      if (other && other.digest !== current?.digest) return { name: withTag(name), faster: !!current && other.size < current.size * 0.9 };
+    }
+  } catch {
+    // The engine is off: there's nothing to offer.
+  }
+  return null;
 }

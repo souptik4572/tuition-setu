@@ -1,5 +1,6 @@
 import { and, asc, count, eq, inArray, ne } from "drizzle-orm";
 import type { StudentData } from "@/lib/schemas/student";
+import { normalizeName } from "@/lib/util/text";
 import { withDb } from "../client";
 import { drafts, extractedEntries, students } from "../schema";
 import type { DbCtx } from "../types";
@@ -94,4 +95,21 @@ export async function historyWeeks(ctx: DbCtx, studentIds: string[]): Promise<Ma
   const weeks = new Map(studentIds.map((id) => [id, new Set<string>()]));
   for (const row of rows) if (row.studentId) weeks.get(row.studentId)?.add(row.cycleId);
   return new Map([...weeks].map(([id, cycles]) => [id, cycles.size]));
+}
+
+/** "Remember this nickname" (§3 Stage F): stored as typed, skipped when the student already answers to it. */
+export async function addNickname(ctx: DbCtx, id: string, nickname: string): Promise<void> {
+  await withDb(ctx, async (db) => {
+    const student = await getStudent(ctx, id);
+    const name = nickname.trim();
+    if (!student || !name) return;
+    const known = [student.fullName, student.messageName, ...student.aliasesJson].map(normalizeName);
+    if (known.includes(normalizeName(name))) return;
+    await db.update(students).set({ aliasesJson: [...student.aliasesJson, name] }).where(own(students, ctx, id));
+  });
+}
+
+/** V7's "Mark fees pending for Riya?" answered yes. */
+export async function setFeesPending(ctx: DbCtx, id: string, pending: boolean): Promise<void> {
+  await withDb(ctx, (db) => db.update(students).set({ feesPending: pending }).where(own(students, ctx, id)));
 }

@@ -1,107 +1,167 @@
-import type { ReactNode } from "react";
+import { ChevronRight, Laptop, PenLine, Settings, TriangleAlert } from "lucide-react";
+import Link from "next/link";
 import { AppShell } from "@/components/ts/app-shell";
 import { Banner } from "@/components/ts/banner";
-import { Key } from "@/components/ts/key";
-import { MessageBubble } from "@/components/ts/message-bubble";
-import { StatusChip, type Status } from "@/components/ts/status-chip";
+import { Key, KeyLink } from "@/components/ts/key";
+import { StatusPill } from "@/components/ts/status-pill";
+import { getHealth } from "@/lib/ai/health";
 import { requirePageMember } from "@/lib/auth/require-member";
-import { getMember } from "@/lib/db/queries/members";
 import { env } from "@/lib/env";
+import { loadNeedsYou } from "@/lib/pipeline/needs-you";
+import { cycleRangeFor, formatRange, hourIn, todayIn } from "@/lib/util/dates";
+import { cn } from "@/lib/utils";
 import { logout } from "./login/actions";
+import { CountChip, ItemRows } from "./needs-you/inbox";
+import { loadShell } from "./shell";
+import { loadRoster } from "./students/data";
 
-// Foundations check (IMPL M1). The dashboard replaces this page in M6.
+const list = (names: string[]) => (names.length > 1 ? `${names.slice(0, -1).join(", ")} and ${names.at(-1)}` : names[0]);
 
-const STATUSES: Status[] = ["needs_you", "notes", "writing", "checked", "flagged", "stale", "approved", "sent", "skipped", "no_notes", "couldnt_read"];
+const card = "flex flex-col gap-4 rounded-lg border-2 border-b-4 border-hairline p-5 lg:p-6";
 
-const EN_PREFIX = "*Weekly update — Riya (12–18 Oct)*\nHello Mrs Sen,\n\n";
-const EN_BODY =
-  "This week Riya worked on Chapter 5, linear equations. She scored 18/20 (70%) in Thursday's test, up from her recent average of 58%, so the extra practice is paying off.";
-const BN_MESSAGE =
-  "*তন্ময়-এর সাপ্তাহিক আপডেট (12–18 Oct)*\nনমস্কার,\n\nএই সপ্তাহে তন্ময় ভগ্নাংশে অনেকটা উন্নতি করেছে। কুইজে ও 17/25 পেয়েছে।\n\n— Mita Ma'am";
-
-function Section({ title, children }: { title: string; children: ReactNode }) {
+function Stat({ n, label, lead, className }: { n: number; label: string; lead?: boolean; className?: string }) {
   return (
-    <section className="flex flex-col gap-4 rounded-lg border-2 border-b-4 border-hairline bg-surface p-6">
-      <h2 className="text-[15px] font-extrabold uppercase tracking-[0.8px] text-ink-strong">{title}</h2>
-      {children}
-    </section>
+    <div className={cn("flex flex-col rounded-md px-4 py-3", lead ? "bg-sky-tint text-on-sky-tint" : "bg-field text-ink-strong", className)}>
+      <span className="text-[28px] leading-tight font-extrabold">{n}</span>
+      <span className={cn("text-[15px]", lead ? "" : "text-muted-foreground")}>{label}</span>
+    </div>
   );
 }
 
+/** The dashboard (M2 on phones, D2 on the laptop, F2-Home, States 2). */
 export default async function Home() {
   const ctx = await requirePageMember();
-  const member = await getMember(ctx, ctx.memberId);
+  const { workspace, member, shell } = await loadShell(ctx);
+  const [inbox, roster, health] = await Promise.all([loadNeedsYou(ctx), loadRoster(ctx, workspace.timezone), getHealth({ aiConfig: workspace.aiConfigJson })]);
+
+  const hour = hourIn(workspace.timezone);
+  const greeting = `Good ${hour < 12 ? "morning" : hour < 17 ? "afternoon" : "evening"}, ${member?.displayName.trim().split(/\s+/)[0] ?? ""}`;
+  const { from, to } = cycleRangeFor(todayIn(workspace.timezone));
+  const range = inbox.cycle?.label ?? formatRange(from, to);
+  const students = roster.active;
+  const withNotes = students.filter((s) => s.week !== "no_notes");
+  const without = students.filter((s) => s.week === "no_notes");
+  const sent = students.filter((s) => s.week === "sent").length;
+  const n = inbox.items.length;
+  const hosted = env.APP_MODE === "hosted";
+
   return (
-    <AppShell aiName={env.MODEL_DRAFT ?? "no model chosen yet"} userName={member?.displayName}>
-      <div className="mx-auto flex max-w-[1328px] flex-col gap-8 px-4 py-8 lg:px-6">
-        <header className="flex flex-wrap items-start justify-between gap-4">
+    <AppShell {...shell}>
+      <div className="mx-auto flex w-full max-w-[1328px] flex-col gap-6 px-4 pt-6 lg:px-6 lg:pt-8">
+        {!health.reachable && (
+          <Banner variant="caution">
+            AI engine is off — your notes are still saved. They&apos;re read as soon as it&apos;s back.
+          </Banner>
+        )}
+        {!health.loopback && <Banner variant="danger">AI runs outside this device — student data leaves this laptop.</Banner>}
+
+        <header className="flex items-start justify-between gap-4">
           <div className="flex flex-col gap-1">
-            <h1 className="font-display text-5xl leading-[1.1] font-extrabold tracking-[-1.2px] text-ink-strong">TuitionSetu</h1>
-            <p className="text-muted-foreground">Foundations check. The dashboard replaces this page in M6.</p>
+            <h1 className="text-[28px] leading-[1.2] font-extrabold text-ink-strong lg:font-display lg:text-5xl lg:leading-[1.1] lg:tracking-[-1.2px]">{greeting}</h1>
+            <StatusPill mode={hosted ? "hosted" : "local"} name={shell.aiName} className="lg:hidden" />
+            <p className="hidden text-[17px] text-muted-foreground lg:block">Week of {range}</p>
           </div>
-          <form action={logout}>
-            <Key type="submit" variant="secondary">
-              Sign out
-            </Key>
-          </form>
+          <Link href="/settings" aria-label="Settings" className="flex size-12 shrink-0 items-center justify-center rounded-md border-2 border-hairline text-ink-strong shadow-[0_2px_0_0_var(--hairline)] lg:hidden">
+            <Settings aria-hidden className="size-6" strokeWidth={2.2} />
+          </Link>
         </header>
 
-        <Section title="Type · three scripts">
-          <p className="text-[17px] leading-normal">She scored 14/20 (70%) in Thursday&apos;s test, up from her recent average of 58%.</p>
-          <p lang="bn" className="text-[22px] leading-normal font-bold">
-            তন্ময়ের সাপ্তাহিক বার্তা
-          </p>
-          <p lang="bn" className="text-[17px] leading-[1.6]">
-            নমস্কার, এটি তন্ময়ের এই সপ্তাহের বার্তা। কুইজে ও 17/25 পেয়েছে।
-          </p>
-          <p lang="hi" className="text-[22px] leading-normal font-bold">
-            कबीर का साप्ताहिक संदेश
-          </p>
-          <p lang="hi" className="text-[17px] leading-[1.6]">
-            नमस्ते, यह कबीर का इस हफ़्ते का संदेश है।
-          </p>
-        </Section>
+        <div className="flex flex-col gap-6 lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(320px,400px)] lg:items-start lg:gap-8">
+          <div className="flex flex-col gap-6">
+            <Link
+              href="/capture"
+              className="flex min-h-[104px] items-center gap-4 rounded-lg bg-sky px-5 py-5 text-on-sky no-underline shadow-[0_4px_0_0_var(--sky-lip)] transition-[transform,box-shadow] duration-[90ms] active:translate-y-1 active:shadow-none lg:min-h-[120px] lg:px-6"
+            >
+              <span aria-hidden className="flex size-14 shrink-0 items-center justify-center rounded-md bg-surface text-ocean">
+                <PenLine className="size-7" strokeWidth={2.4} />
+              </span>
+              <span className="flex flex-col">
+                <span className="text-[22px] font-extrabold">Type a note</span>
+                <span className="text-[15px]">English, বাংলা or shorthand</span>
+              </span>
+            </Link>
 
-        <Section title="Status chips">
-          <div className="flex flex-wrap gap-2.5">
-            {STATUSES.map((s) => (
-              <StatusChip key={s} status={s} />
-            ))}
+            <section aria-labelledby="week-title" className={card}>
+              <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+                <h2 id="week-title" className="text-xl font-extrabold text-ink-strong">
+                  {withNotes.length ? "This week" : "No notes yet this week"}
+                </h2>
+                <span className="text-[15px] text-muted-foreground">
+                  {range} · {students.length === 1 ? "1 student" : `${students.length} students`}
+                </span>
+              </div>
+              {withNotes.length === 0 ? (
+                <p className="text-base text-muted-foreground">{students.length ? `${students.length === 1 ? "1 student" : `${students.length} students`} waiting. Start with whatever you have.` : "Add your students, then start with whatever you have."}</p>
+              ) : (
+                <>
+                  <div className="grid grid-cols-3 gap-2.5 lg:grid-cols-4">
+                    <Stat n={students.length} label="students" className="hidden lg:flex" />
+                    <Stat n={withNotes.length} label="with notes" lead />
+                    <Stat n={without.length} label="without" />
+                    <Stat n={sent} label="sent" />
+                  </div>
+                  <div className="hidden flex-wrap items-center justify-between gap-3 lg:flex">
+                    <p className="min-w-0 flex-[1_1_320px] text-[15px] text-muted-foreground">
+                      {list(withNotes.map((s) => s.messageName))} {withNotes.length === 1 ? "has" : "have"} notes.
+                      {without.length > 0 && ` ${list(without.map((s) => s.messageName))} ${without.length === 1 ? "doesn't" : "don't"} yet.`}
+                    </p>
+                    <KeyLink href="/cycles/current" variant="secondary">
+                      Open weekly review
+                    </KeyLink>
+                  </div>
+                </>
+              )}
+              {students.length === 0 && (
+                <KeyLink href="/students/new" variant="secondary" className="self-start">
+                  Add a student
+                </KeyLink>
+              )}
+            </section>
           </div>
-        </Section>
 
-        <Section title="Keys">
-          <div className="flex flex-wrap items-center gap-3.5">
-            <Key>Approve</Key>
-            <Key variant="secondary">Edit</Key>
-            <Key variant="whatsapp">Send on WhatsApp</Key>
-            <Key variant="text">Forgot PIN?</Key>
-            <Key disabled>Write updates</Key>
-            <Key variant="danger">Delete all data</Key>
-          </div>
-        </Section>
+          <div className="flex flex-col gap-6">
+            <section aria-labelledby="needs-title" className="flex flex-col overflow-hidden rounded-lg border-2 border-b-4 border-hairline">
+              <div className="flex flex-wrap items-center gap-3 px-5 pt-4 pb-3">
+                <h2 id="needs-title" className="text-xl font-extrabold text-ink-strong">
+                  <Link href="/needs-you" className="text-ink-strong no-underline">
+                    Needs you
+                  </Link>
+                </h2>
+                {n > 0 && <CountChip n={n} word="to check" />}
+              </div>
+              {n === 0 ? (
+                <p className="border-t-2 border-hairline px-5 py-4 text-base text-muted-foreground">Nothing needs you right now</p>
+              ) : (
+                <div className="border-t-2 border-hairline">
+                  <ItemRows items={inbox.items.slice(0, 5)} />
+                  {n > 5 && (
+                    <Link href="/needs-you" className="flex min-h-12 items-center justify-between border-t-2 border-hairline px-5 text-base font-extrabold text-ocean no-underline">
+                      See all {n}
+                      <ChevronRight aria-hidden className="size-5" strokeWidth={2.4} />
+                    </Link>
+                  )}
+                </div>
+              )}
+            </section>
 
-        <Section title="Banners">
-          <div className="grid gap-3.5 md:grid-cols-2">
-            <Banner variant="success">Checked — every number matches your notes</Banner>
-            <Banner variant="flag">One number isn&apos;t in your notes</Banner>
-            <Banner variant="caution">AI engine is off — your notes are still saved</Banner>
-            <Banner variant="danger">AI runs outside this device — student data leaves this laptop.</Banner>
+            <section aria-label="AI engine" className="hidden items-center gap-3 rounded-lg bg-field p-4 lg:flex">
+              <span aria-hidden className="flex size-11 shrink-0 items-center justify-center rounded-md bg-surface text-ink-strong">
+                {health.reachable ? <Laptop className="size-6" strokeWidth={2.2} /> : <TriangleAlert className="size-6" strokeWidth={2.2} />}
+              </span>
+              <span className="flex flex-col">
+                <span className="text-base font-extrabold text-ink-strong">{hosted ? `AI · ${shell.aiName}` : `On your laptop · ${shell.aiName}`}</span>
+                <span className={cn("text-[15px]", health.reachable ? "text-ocean" : "text-on-caution")}>{health.reachable ? "AI engine running" : "AI engine is off"}</span>
+              </span>
+            </section>
           </div>
-        </Section>
+        </div>
 
-        <Section title="Message bubbles">
-          <div className="grid gap-6 md:grid-cols-2">
-            <MessageBubble
-              header="To Mrs Sen · English"
-              language="en"
-              message={`${EN_PREFIX}${EN_BODY}\n\n— Mita Ma'am`}
-              bodyOffset={EN_PREFIX.length}
-              highlights={[{ start: EN_BODY.indexOf("18/20"), end: EN_BODY.indexOf("18/20") + 5, label: "Not in your notes" }]}
-            />
-            <MessageBubble header="To Tanmoy's parent · বাংলা" language="bn" message={BN_MESSAGE} streaming />
-          </div>
-        </Section>
+        {/* Settings (M11) takes over signing out; until then it lives here. */}
+        <form action={logout} className="flex justify-center pt-4 pb-2">
+          <Key type="submit" variant="text">
+            Sign out
+          </Key>
+        </form>
       </div>
     </AppShell>
   );

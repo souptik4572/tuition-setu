@@ -9,7 +9,8 @@ import { getStudent, historyWeeks, studentsSharingPhone } from "@/lib/db/queries
 import { weekStatus } from "@/lib/pipeline/week-status";
 import { formatDay, todayIn } from "@/lib/util/dates";
 import { formatPhone } from "@/lib/util/phone";
-import { loadRoster, loadShell } from "../data";
+import { loadShell } from "@/app/shell";
+import { loadRoster } from "../data";
 import { Profile } from "../profile";
 import { Roster } from "../roster";
 

@@ -1,4 +1,4 @@
-import { and, asc, eq, inArray } from "drizzle-orm";
+import { and, asc, desc, eq, inArray } from "drizzle-orm";
 import { withDb } from "../client";
 import { noteInputs } from "../schema";
 import type { DbCtx } from "../types";
@@ -28,5 +28,16 @@ export async function listNotesByStatus(ctx: DbCtx, statuses: Note["status"][]):
       .from(noteInputs)
       .where(and(eq(noteInputs.workspaceId, ctx.workspaceId), inArray(noteInputs.status, statuses)))
       .orderBy(asc(noteInputs.createdAt)),
+  );
+}
+
+/** The cycle's notes, newest first: the saved-note list and the failed notes in Needs you. */
+export async function listCycleNotes(ctx: DbCtx, cycleId: string): Promise<Note[]> {
+  return withDb(ctx, (db) =>
+    db
+      .select()
+      .from(noteInputs)
+      .where(and(eq(noteInputs.workspaceId, ctx.workspaceId), eq(noteInputs.cycleId, cycleId)))
+      .orderBy(desc(noteInputs.createdAt)),
   );
 }

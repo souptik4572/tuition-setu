@@ -35,3 +35,18 @@ export async function listCycleEntries(ctx: DbCtx, cycleId: string): Promise<Ent
 export async function updateEntry(ctx: DbCtx, id: string, patch: EntryPatch): Promise<Entry | null> {
   return withDb(ctx, async (db) => (await db.update(extractedEntries).set(patch).where(own(extractedEntries, ctx, id)).returning())[0] ?? null);
 }
+
+export async function listNoteEntries(ctx: DbCtx, noteId: string): Promise<Entry[]> {
+  return withDb(ctx, (db) =>
+    db
+      .select()
+      .from(extractedEntries)
+      .where(and(eq(extractedEntries.workspaceId, ctx.workspaceId), eq(extractedEntries.noteInputId, noteId)))
+      .orderBy(asc(extractedEntries.createdAt)),
+  );
+}
+
+/** Before a note is read again: its old entries and their scores go (scores cascade from entries). */
+export async function deleteNoteEntries(ctx: DbCtx, noteId: string): Promise<void> {
+  await withDb(ctx, (db) => db.delete(extractedEntries).where(and(eq(extractedEntries.workspaceId, ctx.workspaceId), eq(extractedEntries.noteInputId, noteId))));
+}

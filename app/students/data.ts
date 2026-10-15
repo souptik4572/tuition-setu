@@ -1,12 +1,9 @@
 import "server-only";
-import { modelFor } from "@/lib/ai";
-import type { Ctx } from "@/lib/auth/types";
 import { getOpenCycle } from "@/lib/db/queries/cycles";
 import { listLiveDrafts, type Draft } from "@/lib/db/queries/drafts";
 import { listCycleEntries } from "@/lib/db/queries/entries";
-import { getMember } from "@/lib/db/queries/members";
 import { historyWeeks, listStudents } from "@/lib/db/queries/students";
-import { getWorkspace, type Workspace } from "@/lib/db/queries/workspaces";
+import type { Workspace } from "@/lib/db/queries/workspaces";
 import type { DbCtx } from "@/lib/db/types";
 import type { Language } from "@/lib/schemas/common";
 import { weekStatus, type WeekStatus } from "@/lib/pipeline/week-status";
@@ -15,6 +12,7 @@ import { formatDay, todayIn } from "@/lib/util/dates";
 export type RosterRow = {
   id: string;
   fullName: string;
+  messageName: string;
   nicknames: string[];
   classGrade: string;
   batch: string | null;
@@ -38,6 +36,7 @@ export async function loadRoster(ctx: DbCtx, timezone: string) {
       (s): RosterRow => ({
         id: s.id,
         fullName: s.fullName,
+        messageName: s.messageName,
         nicknames: s.aliasesJson,
         classGrade: s.classGrade,
         batch: s.batch,
@@ -55,12 +54,6 @@ export async function loadRoster(ctx: DbCtx, timezone: string) {
       }),
     ),
   };
-}
-
-/** The workspace's settings, and the AI name and avatar for the app shell. */
-export async function loadShell(ctx: Ctx) {
-  const [workspace, member] = await Promise.all([getWorkspace(ctx), getMember(ctx, ctx.memberId)]);
-  return { workspace: workspace!, shell: { aiName: modelFor("draft", workspace!.aiConfigJson), userName: member?.displayName } };
 }
 
 /** What the student form offers: batches in use, the workspace's subjects, and other students' numbers for the sibling note. */

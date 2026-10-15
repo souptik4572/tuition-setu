@@ -47,3 +47,15 @@ export function formatDay(ymd: string): string {
   const weekday = new Intl.DateTimeFormat("en-US", { weekday: "short", timeZone: "UTC" }).format(toUtc(ymd));
   return `${weekday} ${day} ${month}`;
 }
+
+/** "Wed 14 Oct, 7:40 PM" for a timestamp, in the workspace's time zone. */
+export function formatDayTime(iso: string, timeZone: string): string {
+  const date = new Date(iso);
+  const time = new Intl.DateTimeFormat("en-US", { timeZone, hour: "numeric", minute: "2-digit" }).format(date);
+  return `${formatDay(todayIn(timeZone, date))}, ${time}`;
+}
+
+/** The hour of day (0–23) in the workspace's time zone, for "Good morning". */
+export function hourIn(timeZone: string, now: Date = new Date()): number {
+  return Number(new Intl.DateTimeFormat("en-GB", { timeZone, hour: "numeric", hourCycle: "h23" }).format(now));
+}

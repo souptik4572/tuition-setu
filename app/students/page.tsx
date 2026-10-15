@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { AppShell } from "@/components/ts/app-shell";
 import { requirePageMember } from "@/lib/auth/require-member";
-import { loadRoster, loadShell } from "./data";
+import { loadShell } from "@/app/shell";
+import { loadRoster } from "./data";
 import { Roster } from "./roster";
 
 export const metadata: Metadata = { title: "Students · TuitionSetu" };

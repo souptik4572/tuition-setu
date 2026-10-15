@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { addDays, cycleRangeFor, formatDay, formatRange, todayIn } from "./dates";
+import { addDays, cycleRangeFor, formatDay, formatDayTime, formatRange, hourIn, todayIn } from "./dates";
 
 describe("todayIn", () => {
   it("uses the workspace time zone, not UTC", () => {
@@ -44,5 +44,14 @@ describe("formatDay", () => {
   it("writes the weekday, day and month", () => {
     expect(formatDay("2026-10-15")).toBe("Thu 15 Oct");
     expect(formatDay("2026-09-07")).toBe("Mon 7 Sep");
+  });
+});
+
+describe("formatDayTime and hourIn", () => {
+  it("use the workspace time zone", () => {
+    expect(formatDayTime("2026-10-14T14:10:00.000Z", "Asia/Kolkata")).toBe("Wed 14 Oct, 7:40 PM");
+    expect(formatDayTime("2026-10-14T20:00:00.000Z", "Asia/Kolkata")).toBe("Thu 15 Oct, 1:30 AM");
+    expect(hourIn("Asia/Kolkata", new Date("2026-10-14T14:10:00.000Z"))).toBe(19);
+    expect(hourIn("Asia/Kolkata", new Date("2026-10-14T18:40:00.000Z"))).toBe(0);
   });
 });
