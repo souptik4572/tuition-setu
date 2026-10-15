@@ -149,5 +149,5 @@ vite.config.ts.timestamp-*
 .turbo
 
 # Miscellaneous
-IMPL.md
+*IMPL.md
 .DS_Store

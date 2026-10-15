@@ -174,27 +174,29 @@ Optional: a desktop shortcut or login item that runs `start.sh`, so the tutor ne
 
 Available only while no workspace exists; afterwards `/setup` redirects to `/login`. Finishing B2–B3 creates the workspace and its owner member.
 
+B1 is an unnumbered welcome. B2–B7 are the numbered steps "Setting up · step n of 6" (About you, PIN, AI check, Students, Phone, Try it). Phone and Try it appear only once they are built.
+
 | Step | Screen | What happens | Priority |
 |---|---|---|---|
 | B1 | Welcome | One paragraph: what TuitionSetu does, and that all data stays on this laptop | P0 |
-| B2 | About you | Display name, message signature (e.g. "Mita Ma'am"), subjects, default message language, tone (warm / neutral / formal), report day (default Sunday), include fee reminders (default off) | P0 |
-| B3 | Set a PIN | 4-digit PIN, entered twice. Explains: "Anyone on your Wi-Fi could open this page — the PIN keeps student data private." | P0 |
+| B2 | About you | Display name, message signature (e.g. "Mita Ma'am"), subjects, default message language, tone (warm / neutral / formal), report day (default Sunday), include fee reminders (default off). Name and signature are required. A side panel previews how an update will sound in the chosen language and tone, with the greeting, fee line and signature built by the same code as real messages (§S10) | P0 |
+| B3 | Set a PIN | 6-digit PIN, or a passphrase of 8+ characters, entered twice. Common PINs are refused (§9.1). Explains: "Anyone on your Wi-Fi could open this page — your PIN keeps student details private." | P0 |
 | B4 | AI check | Calls `GET /api/ai/health`: is Ollama running, which models are installed, laptop RAM. Recommends a default model (≤12 GB RAM → small model only; >12 GB → also offers "quality mode"). Runs one short test generation and shows the time taken. If a model is missing, shows the exact `ollama pull` command. | P0 |
-| B5 | Add students | Manual form (one student at a time). **P1:** "Paste a list" — free-text roster lines parsed by the model into a reviewable table | P0 / P1 |
+| B5 | Add students | Manual form, one student at a time, with a running list of students added so far. "I'll add students later" skips the step. **P1:** "Paste a list": one student per line (name, class, parent's WhatsApp number, language, separated by commas or tabs), parsed by code into a checked list (§5.4) | P0 / P1 |
 | B6 | Connect your phone | QR code that pairs the phone in one scan (see §9.4). Skippable | P1 |
 | B7 | Try it | A pre-filled sample note using the tutor's own roster runs through the full pipeline so she sees a real draft before her first real week. Sample data is deleted afterwards | P1 |
 
 On finishing B3 the tutor is signed in on this device and lands on the dashboard after B4–B7.
 
-**Student fields collected in B5:** full name, the name to use in messages, class, batch (optional), subjects, parent's name (optional), parent's WhatsApp number, parent's language (`en`, `bn`, `hi`; P1: Roman-script Bengali/Hindi), nicknames (optional), standing notes for messages (optional, e.g. "father prefers short messages").
+**Student fields collected in B5:** full name, the name to use in messages (filled in from the first name), class, batch (optional), subjects, parent's name (optional), parent's WhatsApp number, parent's language (`en`, `bn`, `hi`; P1: Roman-script Bengali/Hindi), nicknames (optional), standing notes for messages (optional, e.g. "father prefers short messages"). Full name, message name, class, number and language are required. A form with missing fields keeps what was typed and lists what's left to fill in.
 
-Phone numbers are normalised on save: strip spaces, `+`, dashes and a leading `0`; a 10-digit Indian number gets `91` prefixed. Stored as digits only, e.g. `919800000000`.
+Phone numbers are normalised on save: strip spaces, `+`, dashes and a leading `0`; a 10-digit Indian number gets `91` prefixed. A number typed with `+` and a country code other than 91 is kept as an international number. Stored as digits only, e.g. `919800000000`. The form shows the result ("Messages will go to +91 98000 00001"), says when it tidied the input, and gives the digit count when a number is too short. Two students may share a number (siblings); the form notes this but doesn't block it. **Check on WhatsApp** opens `https://wa.me/<number>` with no text, so the tutor can see whose name and photo come up.
 
 ### Stage C — Returning login (`/login`) · P0
 
-- PIN screen. Successful login creates a 30-day sliding session for this device.
-- 5 failed attempts within 10 minutes → locked for 10 minutes.
-- "Forgot PIN" explains: run `npm run reset-pin` on the laptop (physical access to the laptop is the trust anchor). Resetting signs out every device.
+- PIN screen: a 6-digit pad that submits on the 6th digit, or a text field when the tutor chose a passphrase. Successful login creates a 30-day sliding session for this device.
+- A wrong PIN says how many tries are left before the pause. 5 failed attempts within 10 minutes → locked for 10 minutes, shown as a live countdown with the keypad disabled.
+- "Forgot PIN" explains: run `npm run reset-pin` on the laptop (physical access to the laptop is the trust anchor). This works during the 10-minute pause. On the laptop itself the steps appear right on the PIN screen. Resetting signs out every device.
 - P1: Settings → Devices lists signed-in devices with "Sign out" per device.
 
 ### Stage D — Daily capture (after each class) · P0
@@ -216,11 +218,11 @@ Typical daily effort: under a minute per batch, plus clearing any "Needs you" it
 2. Tap **Review this week** → the review screen (desktop: split view; phone: list → detail).
 3. Tap **Generate drafts**. Drafts are generated one student at a time (the local model handles one request at a time well); each streams into a WhatsApp-style bubble.
 4. Each draft is checked by the guard (S9). Passed drafts show a green tick; flagged drafts highlight the exact problem text (e.g. a number not in the notes).
-5. For each student the tutor can: **Edit** the text, **Regenerate** (P1: "warmer", "shorter", "more formal"), fix a fact (e.g. correct a score) which marks the draft stale and regenerates it, **Skip** this week, or **Approve**.
+5. For each student the tutor can: **Edit** the text, **Regenerate** (P1: "warmer", "shorter", "more formal"), fix a fact (e.g. correct a score), **Skip** this week, or **Approve**. A fact change, or a new note about the student, makes the draft **Out of date** (§4.1). The draft then shows which numbers changed ("was 14/20, now 15/20") and can't be approved until it is written again or edited to match.
 6. **Send on WhatsApp** opens `https://wa.me/<number>?text=<message>`; the tutor presses Send inside WhatsApp.
-7. Back in TuitionSetu, a prompt asks "Sent?" → **Mark sent** / **Not yet**. (The app cannot see WhatsApp, so it never assumes.)
-8. Students without notes are listed separately with **Add a quick note** or **Skip this week**.
-9. When every student is sent or skipped, **Complete week** closes the cycle and shows a summary: sent, skipped, edited-before-sending, time taken.
+7. Back in TuitionSetu, a prompt asks "Sent?" → **Mark sent** / **Not yet**. (The app cannot see WhatsApp, so it never assumes.) Approved drafts that aren't marked sent wait in a **Waiting to send** group with **Mark as sent** and **Open WhatsApp**. Sent students collapse into one **Sent** row.
+8. Students without notes are listed separately with **Add a quick note** or **Skip this week**. A quick note is typed right there and **Write update** turns it into a draft. Skipping means that parent gets no message this week. Undo is available on every skip.
+9. **Complete week** is enabled when every student is sent or skipped; until then it says who is left. **Complete week early…** asks first, lists who isn't done, and marks them skipped. Approved drafts are kept, so they can still be sent later. Completing shows a summary: sent, skipped, edited-before-sending, minutes taken, and the date the next week starts.
 
 ### Stage F — Learning and maintenance (ongoing)
 
@@ -231,7 +233,7 @@ Typical daily effort: under a minute per batch, plus clearing any "Needs you" it
 | Standing notes | Per-student notes ("mother reads English", "keep it short") are passed to every draft for that student | P0 |
 | Student history | Student page shows past messages and a score table; P1 adds a small trend chart | P0 / P1 |
 | Backup | Settings → "Download backup" saves a copy of the database file; a gentle reminder appears if no backup in 30 days | P1 |
-| Archive / delete | Archive a student who has left (kept, hidden). Delete removes the student and all their data permanently — for when a parent asks | P0 |
+| Archive / delete | Archive a student who has left: hidden from the roster, weekly reviews and name matching, history kept, **Restore** any time (Students → Archived). Delete removes the student and all their data permanently — for when a parent asks. It needs the student's full name typed to confirm and says that messages already sent stay in the parent's WhatsApp | P0 |
 
 ### Journey timeline (what "dedicated daily use" looks like)
 
@@ -270,6 +272,15 @@ any AI step can fail ─▶ failed (keeps raw input; "Retry" returns it to the f
 processed may still have entries in the "Needs you" inbox (S5/S6 flags)
 ```
 
+A `failed` note is shown as **Couldn't read**, always with the note exactly as typed ("Your note is saved"), and with actions that depend on the cause:
+
+| Cause (`error_code`) | Actions |
+|---|---|
+| `timeout` | Try again · Use the faster model |
+| `invalid_json`, `schema_mismatch` (couldn't make sense of it) | Try again · Try the other model · Edit the note |
+| `provider_unreachable` (AI engine off, local mode) | Try now. The note is retried automatically as soon as the engine answers again |
+| unreadable photo (P1) | Retake · Type it instead |
+
 **Draft**
 
 ```
@@ -277,10 +288,13 @@ generating ─▶ ready ───────────┐
      │          (guard passed) ├─▶ approved ─▶ sent
      └──────▶ flagged ─────────┘      ▲
                (guard issues;          │ edits re-run the guard;
-                approve requires       │ a fact change marks the draft stale
+                approve requires       │ a fact change or a new note marks the draft stale
                 edit or override)      │
-stale ─▶ (regenerate) ─▶ generating    skipped (from any state before sent)
+stale ─▶ (write again) ─▶ generating   skipped (from any state before sent)
+stale ─▶ (edit the text) ─▶ ready / flagged (guard re-run against the current facts)
 ```
+
+**Stale ("Out of date" in the UI)**: a live draft becomes `stale` when one of the student's facts changes (a score edited in the facts panel) or a new entry about the student is confirmed after the draft was written. This applies to `ready`, `flagged` and `approved` drafts. An approved draft loses its approval, so nothing old goes out. A `sent` draft is never changed: it shows "Sent before this change — next week's update will use the new score." A stale draft can't be approved. If the tutor had edited the text, **Write again** warns that it replaces the edits, and **Keep my text** re-runs the guard on the edited text against the current facts.
 
 **Cycle**: `open` (notes accumulate) → `reviewing` (first draft generated) → `completed` (all students sent or skipped, or tutor closes it).
 
@@ -322,7 +336,7 @@ Photo on the left (pinch-zoom on phone), editable transcript on the right with `
 | Input | `raw_text`, class date, batch, roster names + nicknames (spelling reference only) |
 | Model | `MODEL_EXTRACT`, temperature 0, JSON-schema `format`, timeout 120 s, `keep_alive: "15m"` |
 | Output | `ExtractionResult` |
-| Failure | Invalid JSON or Zod failure → one retry with the validation error appended to the prompt → otherwise `failed` with **Retry** / **Use the other model** |
+| Failure | Invalid JSON or Zod failure → one retry with the validation error appended to the prompt → otherwise `failed` with **Retry** / **Use the other model** / **Edit the note** (§4.1 lists the actions per cause). "The other model" is labelled **Use the faster model** when it is the smaller one |
 
 ```ts
 export const Assessment = z.object({
@@ -372,8 +386,8 @@ Rules applied to every entry; violations become **flags** on the entry.
 
 1. Normalise: lowercase, trim, collapse spaces, strip punctuation and diacritics.
 2. **Exact** match on full name or message name → `exact`. Match on a stored nickname → `alias`.
-3. **Fuzzy**: Levenshtein distance ≤ 1 for names of ≤ 5 characters, ≤ 2 for longer names, against all names and nicknames. Exactly one candidate → `fuzzy` (auto-assigned but shown with an "auto-matched — undo" chip).
-4. None or several candidates → `unmatched` → "Needs you": **Assign to…** (with "Remember this nickname", default on) / **New student** / **Ignore**.
+3. **Fuzzy**: Levenshtein distance ≤ 1 for names of ≤ 5 characters, ≤ 2 for longer names, against all names and nicknames. Exactly one candidate → `fuzzy` (auto-assigned but shown with an "auto-matched — undo" chip). Fuzzy matches are also listed under **Matched for you** in Needs you, with Undo; they don't count as items to check.
+4. None or several candidates → `unmatched` → "Needs you": **Assign to a student…** (searchable by name or nickname, with "Remember this nickname", default on) / **New student** (a short form: full name prefilled from the note, class, parent's number, language; the rest can be added later) / **Ignore** (confirms first; the rest of the note is still used, and Undo is offered). Lines tied to no student (V6) get Assign to a student… / Ignore. Assistants can assign and ignore but not add a student; that item stays for an owner or teacher.
 5. **Auto-confirm**: an entry that is resolved and has no blocking flags is confirmed immediately and its assessments are written to the `assessments` table. Everything else waits in "Needs you".
 
 ### S7 — Build facts (code) · P0
@@ -443,7 +457,7 @@ Dates in titles are formatted with `Intl.DateTimeFormat` using a Latin-digit loc
 
 ### S11 — Approve (human) · P0
 
-Approve is enabled when the guard passes or after an override. Editing an approved draft returns it to `ready`/`flagged`. Changing a fact in the facts panel marks the draft `stale`.
+Approve is enabled when the guard passes or after an override, and never while the draft is `stale`. Editing an approved draft returns it to `ready`/`flagged`. Changing a fact in the facts panel, or a new confirmed note about the student, marks the draft `stale` (§4.1).
 
 ### S12 — Send and log · P0
 
@@ -459,7 +473,7 @@ Before any number comparison, convert Bengali digits `০১২৩৪৫৬৭�
 
 | Situation | Behaviour |
 |---|---|
-| Ollama not running | Yellow banner "AI engine is off — notes are still saved"; capture works; processing resumes when Ollama answers (dashboard **Process pending notes**) |
+| Ollama not running | Yellow banner "AI engine is off — notes are still saved"; capture works; processing resumes on its own when Ollama answers again (local mode; the dashboard's **Process pending notes** also does it). `./start.sh` starts Ollama if it is installed but not running |
 | Model not installed | Settings and setup show the exact `ollama pull …` command |
 | AI timeout | Note → `failed` with Retry; draft → `flagged` with "Generation timed out — Regenerate" |
 | Invalid JSON twice | `failed`; error code stored in `ai_runs` |
@@ -543,9 +557,9 @@ FACTS:
 Tutor's standing notes for this family: {standingNotes | "none"}
 ```
 
-### 5.4 Roster import (B5) · P1
+### 5.4 Roster paste (B5) · P1 — parsed by code, no prompt
 
-Input: free-text lines such as `Riya Sen, class 7, mother Rina, 98xxxxxx01, Bengali`. Output schema: array of student objects matching the student form. Result is shown as an editable table; nothing is saved until the tutor confirms.
+The paste format is fixed, so no model is needed. One student per line: name, class, parent's WhatsApp number, language, separated by commas or tabs. Fields are recognised by shape: a number with 9+ digits is the phone and is normalised (§3 B5); `English`, `Bengali`, `বাংলা`, `Hindi`, `हिन्दी` (any case) is the language; a short number or `class 7` is the class; the rest is the name. So a missing field is reported, not guessed. Each line shows **Ready** or what it needs, e.g. "Needs a number". Tidied numbers say what they were tidied from. Nothing is saved until **Add {n} students**, which adds only the ready lines; lines that aren't ready stay in the box.
 
 ---
 
@@ -558,16 +572,16 @@ All tables have `id TEXT PRIMARY KEY` (UUID via `crypto.randomUUID()`), `workspa
 | Table | Key columns | Notes |
 |---|---|---|
 | `workspaces` | `name`, `subjects_json`, `default_language`, `tone` (`warm`/`neutral`/`formal`), `report_day` (0–6), `timezone` (default `Asia/Kolkata`), `include_fee_reminders`, `delete_photos_after_confirm`, `ai_config_json` (model per task) | The tenant. Local mode: exactly one row. Hosted: one per tutor or coaching centre |
-| `members` | `workspace_id`, `user_id` (hosted: Supabase `auth.users.id`; local: a generated id), `display_name`, `signature`, `role` (`owner`/`teacher`/`assistant`), `status` (`active`/`removed`), `pin_hash`, `pin_salt` (local mode only) | Signature is per member, so each teacher signs their own messages. Unique `(workspace_id, user_id)` |
-| `students` | `full_name`, `message_name`, `name_native` (P1), `aliases_json`, `class_grade`, `batch`, `subjects_json`, `parent_name`, `parent_phone` (digits), `parent_language` (`en`/`bn`/`hi`; P1 `bn-Latn`/`hi-Latn`), `standing_notes`, `fees_pending` (bool), `status` (`active`/`archived`) | `fees_pending` is a manual toggle, also set from the V7 prompt (§4, S5) |
+| `members` | `workspace_id`, `user_id` (hosted: Supabase `auth.users.id`; local: a generated id), `display_name`, `signature`, `role` (`owner`/`teacher`/`assistant`), `status` (`active`/`removed`), `pin_hash`, `pin_salt`, `pin_kind` (`pin`/`passphrase`) (local mode only) | Signature is per member, so each teacher signs their own messages. Unique `(workspace_id, user_id)`. `pin_kind` tells the login screen whether to show the PIN pad or a text field |
+| `students` | `full_name`, `message_name`, `name_native` (P1), `aliases_json`, `class_grade`, `batch`, `subjects_json`, `parent_name`, `parent_phone` (digits), `parent_language` (`en`/`bn`/`hi`; P1 `bn-Latn`/`hi-Latn`), `standing_notes`, `fees_pending` (bool), `status` (`active`/`archived`), `archived_at` | `fees_pending` is a manual toggle, also set from the V7 prompt (§4, S5). `archived_at` is shown in the archived list |
 | `cycles` | `label`, `starts_on`, `ends_on` (dates), `status` (`open`/`reviewing`/`completed`), `completed_at` | One open cycle at a time |
-| `note_inputs` | `cycle_id`, `source` (`typed`/`photo`), `class_date`, `batch`, `raw_text`, `transcript_draft_json`, `image_path`, `status` (§4.1), `error_code` | `raw_text` is null for a photo until S3 confirms |
+| `note_inputs` | `cycle_id`, `source` (`typed`/`photo`), `origin` (`capture`/`quick_note`), `class_date`, `batch`, `raw_text`, `transcript_draft_json`, `image_path`, `status` (§4.1), `error_code` | `raw_text` is null for a photo until S3 confirms. `quick_note` = typed from the weekly review's "No notes this week" list; the week summary tags those updates "From a quick note" |
 | `extracted_entries` | `note_input_id`, `cycle_id`, `name_as_written`, `student_id` (nullable), `resolution` (`exact`/`alias`/`fuzzy`/`manual`/`unmatched`/`ignored`), `payload_json` (`ExtractedEntry`), `flags_json`, `confirmed_at` | The "Needs you" inbox = entries with blocking flags or `unmatched` |
 | `assessments` | `student_id`, `cycle_id`, `entry_id`, `label`, `scored`, `max`, `taken_on` | Written on confirm; editable from the facts panel |
 | `drafts` | `cycle_id`, `student_id`, `version`, `language`, `facts_json`, `body_model`, `message_final`, `model`, `prompt_version`, `guard_json`, `override` (bool), `status` (§4.1), `created_by`, `approved_by`, `sent_by` (member ids), `approved_at`, `sent_at` | Latest `version` per (cycle, student) is the live draft; older versions kept for history |
 | `sessions` | `member_id`, `token_hash`, `device_label`, `user_agent`, `last_seen_at`, `expires_at`, `revoked_at` | Local mode only — hosted mode uses Supabase Auth sessions |
 | `pairing_tokens` | `token_hash`, `expires_at`, `used_at` | Local mode only, P1 |
-| `ai_runs` | `task` (`transcribe`/`extract`/`draft`/`roster_import`/`health`), `provider`, `model`, `prompt_version`, `input_chars`, `prompt_tokens`, `completion_tokens`, `duration_ms`, `ok`, `error_code` | No note or message content, ever |
+| `ai_runs` | `task` (`transcribe`/`extract`/`draft`/`health`), `provider`, `model`, `prompt_version`, `input_chars`, `prompt_tokens`, `completion_tokens`, `duration_ms`, `ok`, `error_code` | No note or message content, ever |
 | `audit_events` | `actor_member_id`, `action`, `target_table`, `target_id`, `meta_json` | Approvals, sends, guard overrides, exports, deletions; in hosted mode also privacy acceptance, invitations and role changes. No note or message content |
 | `invitations` | `email`, `role`, `token_hash`, `invited_by`, `expires_at`, `accepted_at` | Hosted mode only (§19.4) |
 
@@ -626,16 +640,17 @@ All queries live in `lib/db/queries/*.ts`, take the caller's `workspaceId` as th
 
 | Action | Purpose | P |
 |---|---|---|
-| `completeSetup(profile, pin)` | Stage B2–B3; creates the workspace and its owner member; only when no workspace exists | P0 |
-| `login(pin)` / `logout()` | Stage C | P0 |
-| `createStudent` / `updateStudent` / `archiveStudent` / `deleteStudent` | Roster | P0 |
-| `saveNote({ text, batch, classDate })` | S1 typed | P0 |
+| `completeSetup(profile, secret)` | Stage B2–B3; `secret` is `{ kind: "pin" \| "passphrase", value }`; creates the workspace and its owner member; only when no workspace exists | P0 |
+| `login(secret)` / `logout()` | Stage C | P0 |
+| `createStudent` / `updateStudent` / `archiveStudent` / `restoreStudent` / `deleteStudent` | Roster | P0 |
+| `saveNote({ text, batch, classDate, origin? })` | S1 typed; `origin: "quick_note"` from the weekly review | P0 |
+| `editNote(noteId, text)` | Fixes the text of a `failed` note and processes it again | P0 |
 | `confirmTranscript(noteId, text)` | S3 | P1 |
-| `resolveEntry(entryId, { studentId, rememberAlias } \| { ignore: true } \| { newStudent })` | S6 human step | P0 |
+| `resolveEntry(entryId, { studentId, rememberAlias } \| { ignore: true } \| { newStudent })` / `undoResolve(entryId)` | S6 human step; undo restores an ignored line or an auto-match to "Needs you" | P0 |
 | `setEntryTotal(entryId, assessmentIndex, max)` | Answers a `missing_total` flag | P0 |
 | `updateAssessment(id, { scored, max, label })` | Facts panel edit → marks draft stale | P0 |
 | `editDraft(id, text)` / `approveDraft(id, { override })` / `skipDraft(id)` / `markSent(id)` | S11–S12 | P0 |
-| `completeCycle(id)` | Stage E9 | P0 |
+| `completeCycle(id, { early? })` | Stage E9; `early` marks students not yet sent or skipped as skipped and leaves approved drafts as they are | P0 |
 | `updateSettings(...)` | Settings | P0 |
 | `createPairingToken()` / `revokeSession(id)` | §9.4 | P1 |
 | `sendSignInCode(email)` / `verifySignInCode(email, code)` | Hosted sign-in (§19.3) | P0 (hosted) |
@@ -664,13 +679,16 @@ Route Handlers check that the `Origin` header's host matches `Host` (Server Acti
 
 | Route | Screen | Phone layout | P |
 |---|---|---|---|
-| `/setup` | Wizard B1–B7 | Single column | P0 |
-| `/login` | PIN pad | Single column, large keys | P0 |
+| `/setup` | Wizard B1–B7: About you with a live message preview; PIN or passphrase; AI check; add students (form, running list, P1 paste) | Single column; desktop adds a side panel | P0 |
+| `/login` | PIN pad (6 digits) or passphrase field; tries left; live lockout countdown; Forgot PIN | Single column, large keys | P0 |
 | `/` | Dashboard: open cycle card, **Needs you** inbox, **Quick note** + **Photo** buttons, AI status pill ("Local · <model>") | Buttons first, then inbox | P0 |
 | `/capture` | Quick note: textarea, Photo button, batch, date, Save | Full-screen textarea, 16 px font (avoids iOS zoom) | P0 |
+| `/capture/[id]` | Saved note: reading progress, then the students found; for a failed note, "Couldn't read" with the note as typed and the actions in §4.1 | Single column | P0 |
 | `/capture/[id]/transcript` | Photo vs transcript review (S3) | Photo above, transcript below | P1 |
-| `/students`, `/students/new`, `/students/[id]` | Roster; student profile with nicknames, standing notes, history, scores | Lists | P0 |
-| `/cycles/[id]` | **Weekly review.** Left: student list with status chips. Centre: facts panel (editable). Right: WhatsApp-style bubble preview with inline guard highlights; actions Edit / Regenerate / Skip / Approve / Send on WhatsApp | List → detail page per student | P0 |
+| `/needs-you`, `/needs-you/[id]` | Everything waiting (unknown names, lines about no one, missing totals, notes that couldn't be read) plus **Matched for you** (auto-matches with Undo). "Nothing is sent until you decide." | One item per screen with "Also waiting" below; desktop: list beside the open item | P0 |
+| `/students`, `/students/new`, `/students/[id]` | Roster with search (name or nickname) and Active / Archived filter; student form; profile with nicknames, standing notes, parent's number, Messages and Scores tabs, and an actions menu (Edit, Archive, Delete permanently — each shown only to roles that may use it, §19.5) | Lists; desktop: table beside the profile | P0 |
+| `/cycles/[id]` | **Weekly review.** Left: student list with status chips, grouped as Sent, Waiting to send and No notes this week; progress "{sent} of {n} sent · {skipped} skipped"; Complete week / Complete week early…. Centre: facts panel (editable). Right: WhatsApp-style bubble preview with inline guard highlights; actions Edit / Regenerate / Skip / Approve / Send on WhatsApp | List → detail page per student | P0 |
+| `/cycles/[id]/done` | Week complete: sent, skipped, edited before sending, minutes; each student's result; next week's start date | Single column | P0 |
 | `/settings` | Profile, language, tone, report day, fee reminders, models per task + "Test", devices, backup/export, delete all data | Sections | P0 (P1 parts as marked above) |
 | `/login` (hosted) | Email → 6-digit code; "Continue with Google" (P1) | Single column | P0 (hosted) |
 | `/onboarding` (hosted) | Privacy notice → create workspace → "Load sample students" or add your own | Single column, one step per screen | P0 (hosted) |
@@ -679,7 +697,7 @@ Route Handlers check that the `Origin` header's host matches `Host` (Server Acti
 
 The hosted version shows a slim preview banner on every page while `PREVIEW_INSTANCE=true` (§19.14).
 
-**Status chips** always pair colour with an icon and a word (not colour alone). Tap targets ≥ 44 px. Bengali text uses Baloo Da 2 and Devanagari text uses Baloo 2, so previews in every language render correctly. Previews use the app's fonts, not WhatsApp's own system font.
+**Status chips** always pair colour with an icon and a word (not colour alone): Needs you, Checked, Flagged, Approved, Sent, Skipped, Out of date (a stale draft; bordered so it never reads as Checked) and Couldn't read (a failed note; plain grey, because the note is safe and only needs another try). Tap targets ≥ 44 px. Bengali text uses Baloo Da 2 and Devanagari text uses Baloo 2, so previews in every language render correctly. Previews use the app's fonts, not WhatsApp's own system font.
 
 ---
 
@@ -689,10 +707,11 @@ In local mode, "first login" means a **PIN on this laptop**; there is no cloud a
 
 ### 9.1 PIN
 
-- Exactly 4 digits. With only 10,000 combinations, the rate limit below is what protects it, so it must not be cut.
+- Exactly 6 digits, or a passphrase of at least 8 characters (spaces allowed). `members.pin_kind` records which.
+- Easy PINs are refused: six of the same digit, and a short list of runs and patterns (`123456`, `654321`, `012345`, `234567`, `345678`, `456789`, `987654`, `876543`, `121212`, `123123`, `112233`, `102030`).
 - Stored as `scrypt` hash (Node `crypto.scrypt`, 16-byte random salt); compared with `crypto.timingSafeEqual`.
-- Rate limit: 5 failures per 10 minutes per client IP (in-memory), then 10-minute lockout.
-- `npm run reset-pin` (on the laptop) sets a new PIN and revokes all sessions.
+- Rate limit: 5 failures per 10 minutes per client IP (in-memory), then 10-minute lockout. The login response gives the tries left and, when locked, the time the pause ends.
+- `npm run reset-pin` (on the laptop) sets a new PIN or passphrase and revokes all sessions. It ignores the lockout.
 
 ### 9.2 Sessions
 
@@ -745,7 +764,7 @@ Principles:
 // lib/ai/provider.ts
 export interface AIProvider {
   generateObject<T>(opts: {
-    task: "extract" | "transcribe" | "roster_import";
+    task: "extract" | "transcribe";
     model: string;
     system: string;
     prompt: string;
@@ -940,7 +959,7 @@ Supported: macOS and Linux via `setup.sh` (P0); Windows via `setup.ps1` (P1). Ea
 
 | Layer | What | P |
 |---|---|---|
-| Unit (Vitest) | Digit normalisation; phone normalisation; number-shape parser; S5 validators; S6 name resolver (exact, alias, fuzzy, ambiguous); S7 trend thresholds; S9 every guard rule incl. Bengali/Devanagari digits and cross-student names; S10 assembly per language; PIN hash/verify; session expiry | P0 |
+| Unit (Vitest) | Digit normalisation; phone normalisation; number-shape parser; S5 validators; S6 name resolver (exact, alias, fuzzy, ambiguous); S7 trend thresholds; S9 every guard rule incl. Bengali/Devanagari digits and cross-student names; S10 assembly per language; stale-draft rules (§4.1); PIN and passphrase rules incl. the easy-PIN list; PIN hash/verify; session expiry; roster paste parser (P1) | P0 |
 | Evals | §11.3 against real models | P0 |
 | Manual QA checklist | Setup on a clean machine; PIN lockout; phone over LAN (Android + iPhone); camera capture opens the rear camera; `wa.me` opens WhatsApp with the text; Bengali and Hindi render correctly in preview and in WhatsApp; Ollama stopped mid-review; delete a student removes their history; `./setup.sh` on a fresh clone on clean macOS and Linux; hosted sign-up with a never-used email address, on desktop and on a phone; hosted quotas show a friendly message when reached | P0 |
 | Authorization (both modes) | `requireMember()` rejects missing sessions, removed members and roles below the minimum; queries never cross `workspace_id` | P0 |
@@ -1057,7 +1076,7 @@ Its core ships for the hackathon (§19). Next: Google sign-in and invitations if
 2. Weekly updates, or a short update after every class?
 3. Should fee reminders ever share a message with progress updates, or always be separate?
 4. How much RAM does the first user's laptop have (decides the default model)?
-5. Should students without notes this week get a short generic message, or nothing?
+5. ~~Should students without notes this week get a short generic message, or nothing?~~ Decided in the designs: nothing, unless the tutor adds a quick note (§3 E8).
 6. For hosted mode: do tutors prefer signing in with an email code, Google, or a phone OTP (which costs money per SMS)?
 7. After judging, should the hosted instance be wiped, or kept open for early users? Keeping it means dropping the preview banner and its "fictional data only" rule, and moving to our own inference server first.
 
@@ -1140,7 +1159,7 @@ Three roles per workspace. One person can hold different roles in different work
 | Capability | Owner | Teacher | Assistant |
 |---|:-:|:-:|:-:|
 | View students, notes, drafts and history | ✓ | ✓ | ✓ |
-| Capture notes; answer "Needs you" items | ✓ | ✓ | ✓ |
+| Capture notes; answer "Needs you" items (adding a new student from one needs Teacher) | ✓ | ✓ | ✓ |
 | Add, edit and archive students | ✓ | ✓ | — |
 | Generate, edit, approve and send drafts | ✓ | ✓ | — |
 | "Send anyway" guard override | ✓ | ✓ | — |
