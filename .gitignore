@@ -151,3 +151,13 @@ vite.config.ts.timestamp-*
 # Miscellaneous
 *IMPL.md
 .DS_Store
+
+# Next.js
+next-env.d.ts
+.vercel
+
+# TuitionSetu local data (SPEC §13.3)
+data/
+
+# The example env file is committed
+!.env.example

@@ -1,0 +1,245 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+/* Design tokens: Board 0 "Copybook Keys" (IMPL §6.1). Dark mode follows the OS; there is no manual toggle. */
+:root {
+  --paper: #ffffff;
+  --surface: #ffffff;
+  --field: #f7f7f7;
+  --hairline: #e5e5e5;
+  --field-border: #8a8a8a;
+  --ink: #3c3c3c;
+  --ink-strong: #4b4b4b;
+  --muted-foreground: #6b6b6b;
+
+  --sky: #1cb0f6;
+  --sky-lip: #1899d6;
+  --on-sky: #08325c;
+  --ocean: #0a6fa8;
+  --on-ocean: #ffffff;
+  --sky-tint: #ddf4ff;
+  --on-sky-tint: #0a5f91;
+
+  --orange: #ff9600;
+  --on-orange: #101010;
+  --highlight: #ffd199;
+  --on-highlight: #7a3e00;
+  --on-mark: #101010;
+  --orange-tint: #fff0d9;
+
+  --green: #58cc02;
+  --green-lip: #46a302;
+  --on-green: #101010;
+  --bubble: #d7ffb8;
+  --bubble-meta: #5a5a5a;
+
+  --caution: #fff3c4;
+  --on-caution: #5c4300;
+  --caution-border: #f2c94c;
+  --danger: #c62f2f;
+  --danger-lip: #8e1f1f;
+  --on-danger: #ffffff;
+  --sent: #4b4b4b;
+  --on-sent: #ffffff;
+  --skip-border: #b5b5b5;
+
+  /* shadcn/ui variables, mapped onto the tokens so its primitives follow the palette */
+  --background: var(--paper);
+  --foreground: var(--ink);
+  --card: var(--surface);
+  --card-foreground: var(--ink);
+  --popover: var(--surface);
+  --popover-foreground: var(--ink);
+  --primary: var(--sky);
+  --primary-foreground: var(--on-sky);
+  --secondary: var(--field);
+  --secondary-foreground: var(--ink-strong);
+  --muted: var(--field);
+  --accent: var(--sky-tint);
+  --accent-foreground: var(--on-sky-tint);
+  --destructive: var(--danger);
+  --border: var(--hairline);
+  --input: var(--field-border);
+  --ring: var(--ocean);
+  --radius: 12px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --paper: #141718;
+    --surface: #1e2224;
+    --field: #262b2e;
+    --hairline: #353b3e;
+    --field-border: #7a8388;
+    --ink: #ecedee;
+    --ink-strong: #f5f6f6;
+    --muted-foreground: #a3abaf;
+
+    --sky: #49c0f8;
+    --sky-lip: #2a8fc4;
+    --on-sky: #0b2a3d;
+    --ocean: #7fd3fa;
+    --on-ocean: #0b2a3d;
+    --sky-tint: #13344a;
+    --on-sky-tint: #9edcfb;
+
+    --orange: #ffb54d;
+    --on-orange: #141718;
+    --highlight: #6b4210;
+    --on-highlight: #ffe6c4;
+    --on-mark: #ffe6c4;
+    --orange-tint: #3d2a10;
+
+    --green: #58cc02;
+    --green-lip: #3f8f02;
+    --on-green: #141718;
+    --bubble: #24411a;
+    --bubble-meta: #a3abaf;
+
+    --caution: #3a3010;
+    --on-caution: #ffe08a;
+    --caution-border: #8a7224;
+    --danger: #ff8a80;
+    --danger-lip: #c25e56;
+    --on-danger: #141718;
+    --sent: #ecedee;
+    --on-sent: #141718;
+    --skip-border: #4a5156;
+  }
+}
+
+@theme inline {
+  --color-paper: var(--paper);
+  --color-surface: var(--surface);
+  --color-field: var(--field);
+  --color-hairline: var(--hairline);
+  --color-field-border: var(--field-border);
+  --color-ink: var(--ink);
+  --color-ink-strong: var(--ink-strong);
+  --color-sky: var(--sky);
+  --color-sky-lip: var(--sky-lip);
+  --color-on-sky: var(--on-sky);
+  --color-ocean: var(--ocean);
+  --color-on-ocean: var(--on-ocean);
+  --color-sky-tint: var(--sky-tint);
+  --color-on-sky-tint: var(--on-sky-tint);
+  --color-orange: var(--orange);
+  --color-on-orange: var(--on-orange);
+  --color-highlight: var(--highlight);
+  --color-on-highlight: var(--on-highlight);
+  --color-on-mark: var(--on-mark);
+  --color-orange-tint: var(--orange-tint);
+  --color-green: var(--green);
+  --color-green-lip: var(--green-lip);
+  --color-on-green: var(--on-green);
+  --color-bubble: var(--bubble);
+  --color-bubble-meta: var(--bubble-meta);
+  --color-caution: var(--caution);
+  --color-on-caution: var(--on-caution);
+  --color-caution-border: var(--caution-border);
+  --color-danger: var(--danger);
+  --color-danger-lip: var(--danger-lip);
+  --color-on-danger: var(--on-danger);
+  --color-sent: var(--sent);
+  --color-on-sent: var(--on-sent);
+  --color-skip-border: var(--skip-border);
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  /* Nunito has no Bengali or Devanagari glyphs, so those fall through to the Baloo faces. */
+  --font-sans: var(--font-nunito), var(--font-baloo-da), var(--font-baloo), ui-rounded, system-ui, sans-serif;
+  --font-display: var(--font-baloo), var(--font-nunito), var(--font-baloo-da), sans-serif;
+  --font-heading: var(--font-display);
+
+  /* Three radii only: 8 inputs and chips, 12 small keys and rows, 16 cards, big keys and sheets. */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 16px;
+  --radius-2xl: 16px;
+  --radius-3xl: 16px;
+  --radius-4xl: 16px;
+
+  --animate-reading: reading 1.2s ease-in-out infinite;
+  --animate-caret: caret 1s steps(1) infinite;
+
+  @keyframes reading {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.35;
+    }
+  }
+
+  @keyframes caret {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0;
+    }
+  }
+}
+
+@layer base {
+  * {
+    border-color: var(--border);
+  }
+  html {
+    font-family: var(--font-sans);
+  }
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-weight: 600;
+  }
+  :focus-visible {
+    outline: 3px solid var(--ocean);
+    outline-offset: 2px;
+  }
+
+  /* Attribute selectors, not :lang(), so a nested lang="en" label resets cleanly and
+     unattributed children inherit from their parent. */
+  [lang|="en"] {
+    font-family: var(--font-sans);
+    font-weight: 600;
+  }
+  [lang|="bn"] {
+    font-family: var(--font-baloo-da), var(--font-nunito), sans-serif;
+    font-weight: 500;
+  }
+  [lang|="hi"] {
+    font-family: var(--font-baloo), var(--font-nunito), sans-serif;
+    font-weight: 500;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    ::before,
+    ::after {
+      animation: none !important;
+      transition: none !important;
+    }
+  }
+}
