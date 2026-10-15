@@ -125,7 +125,7 @@ A home tutor with 20–40 students should send each parent a short weekly update
 | Framework | Next.js (latest stable), App Router, React, TypeScript `strict` |
 | Runtime | Node.js LTS; all routes use the Node runtime (SQLite needs a filesystem) |
 | UI | Tailwind CSS + shadcn/ui components |
-| Fonts | `next/font`: Noto Sans, Noto Sans Bengali, Noto Sans Devanagari |
+| Fonts | `next/font/google` (self-hosted at build time): Nunito for Latin UI, Baloo 2 for display and Devanagari, Baloo Da 2 for Bengali |
 | Database | Local: SQLite via `better-sqlite3`. Hosted: Supabase Postgres via `postgres`. Both through Drizzle ORM and `drizzle-kit` |
 | Auth (hosted) | Supabase Auth with `@supabase/ssr` (§19.3) |
 | Hosting (hosted) | A Node server host: Render, DigitalOcean App Platform or Vercel (§19.14) |
@@ -135,6 +135,7 @@ A home tutor with 20–40 students should send each parent a short weekly update
 | Zod → JSON Schema | `z.toJSONSchema()` (Zod 4) or `zod-to-json-schema` |
 | QR codes (P1) | `qrcode` |
 | Tests | Vitest (unit tests and the eval runner) |
+| Sending Email | resend (https://resend.com/) with proper configurable HTML templates |
 
 ---
 
@@ -177,7 +178,7 @@ Available only while no workspace exists; afterwards `/setup` redirects to `/log
 |---|---|---|---|
 | B1 | Welcome | One paragraph: what TuitionSetu does, and that all data stays on this laptop | P0 |
 | B2 | About you | Display name, message signature (e.g. "Mita Ma'am"), subjects, default message language, tone (warm / neutral / formal), report day (default Sunday), include fee reminders (default off) | P0 |
-| B3 | Set a PIN | 6+ digit PIN or passphrase, entered twice. Explains: "Anyone on your Wi-Fi could open this page — the PIN keeps student data private." | P0 |
+| B3 | Set a PIN | 4-digit PIN, entered twice. Explains: "Anyone on your Wi-Fi could open this page — the PIN keeps student data private." | P0 |
 | B4 | AI check | Calls `GET /api/ai/health`: is Ollama running, which models are installed, laptop RAM. Recommends a default model (≤12 GB RAM → small model only; >12 GB → also offers "quality mode"). Runs one short test generation and shows the time taken. If a model is missing, shows the exact `ollama pull` command. | P0 |
 | B5 | Add students | Manual form (one student at a time). **P1:** "Paste a list" — free-text roster lines parsed by the model into a reviewable table | P0 / P1 |
 | B6 | Connect your phone | QR code that pairs the phone in one scan (see §9.4). Skippable | P1 |
@@ -678,7 +679,7 @@ Route Handlers check that the `Origin` header's host matches `Host` (Server Acti
 
 The hosted version shows a slim preview banner on every page while `PREVIEW_INSTANCE=true` (§19.14).
 
-**Status chips** always pair colour with an icon and a word (not colour alone). Tap targets ≥ 44 px. Bengali/Devanagari text uses the matching Noto font so previews render exactly as WhatsApp will show them.
+**Status chips** always pair colour with an icon and a word (not colour alone). Tap targets ≥ 44 px. Bengali text uses Baloo Da 2 and Devanagari text uses Baloo 2, so previews in every language render correctly. Previews use the app's fonts, not WhatsApp's own system font.
 
 ---
 
@@ -688,7 +689,7 @@ In local mode, "first login" means a **PIN on this laptop**; there is no cloud a
 
 ### 9.1 PIN
 
-- Minimum 6 digits (or a passphrase of 8+ characters).
+- Exactly 4 digits. With only 10,000 combinations, the rate limit below is what protects it, so it must not be cut.
 - Stored as `scrypt` hash (Node `crypto.scrypt`, 16-byte random salt); compared with `crypto.timingSafeEqual`.
 - Rate limit: 5 failures per 10 minutes per client IP (in-memory), then 10-minute lockout.
 - `npm run reset-pin` (on the laptop) sets a new PIN and revokes all sessions.
