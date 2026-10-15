@@ -6,7 +6,7 @@ import { readText } from "./provider";
 import { fakeFetch, hang, json, ndjson } from "./test-fetch";
 
 const Score = z.object({ scored: z.number(), max: z.number().nullable() });
-const opts = { task: "extract" as const, model: "gemma4:e2b", system: "sys", prompt: "Riya 14/20", schema: Score, temperature: 0, timeoutMs: 1_000 };
+const opts = { task: "extract" as const, model: "gemma4:latest", system: "sys", prompt: "Riya 14/20", schema: Score, temperature: 0, timeoutMs: 1_000 };
 const reply = (content: string) => json({ message: { role: "assistant", content }, done: true, prompt_eval_count: 40, eval_count: 9, total_duration: 2_500_000_000 });
 
 describe("OllamaProvider.generateObject", () => {
@@ -16,7 +16,7 @@ describe("OllamaProvider.generateObject", () => {
 
     expect(result).toEqual({ object: { scored: 14, max: 20 }, usage: { promptTokens: 40, completionTokens: 9, durationMs: 2500 } });
     const chat = f.calls.find((c) => c.path === "/api/chat")!.body;
-    expect(chat).toMatchObject({ model: "gemma4:e2b", stream: false, keep_alive: "15m", options: { temperature: 0 } });
+    expect(chat).toMatchObject({ model: "gemma4:latest", stream: false, keep_alive: "15m", options: { temperature: 0 } });
     expect(chat.format).toMatchObject({ type: "object", required: ["scored", "max"] });
     expect(chat.format).not.toHaveProperty("$schema");
     expect(chat).not.toHaveProperty("think");
@@ -41,14 +41,14 @@ describe("OllamaProvider.generateObject", () => {
   });
 
   it("reports a model that isn't pulled as model_missing", async () => {
-    const provider = new OllamaProvider({ host: "http://x:1", fetch: fakeFetch({ "/api/show": () => json({ error: "model 'gemma4:e2b' not found" }, 404) }).fetch });
+    const provider = new OllamaProvider({ host: "http://x:1", fetch: fakeFetch({ "/api/show": () => json({ error: "model 'gemma4:latest' not found" }, 404) }).fetch });
     const error = await provider.generateObject(opts).catch((e) => e);
     expect(toAiError(error).code).toBe("model_missing");
   });
 });
 
 describe("OllamaProvider.streamText", () => {
-  const draft = { task: "draft" as const, model: "gemma4:e2b", system: "sys", prompt: "facts", temperature: 0.4, timeoutMs: 1_000 };
+  const draft = { task: "draft" as const, model: "gemma4:latest", system: "sys", prompt: "facts", temperature: 0.4, timeoutMs: 1_000 };
 
   it("streams text and resolves usage from the final part", async () => {
     const f = fakeFetch({

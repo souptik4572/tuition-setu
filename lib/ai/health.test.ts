@@ -23,8 +23,8 @@ describe("getHealth", () => {
     expect(health).toMatchObject({ provider: "ollama", reachable: true, loopback: true });
     expect(health.models).toEqual([
       { task: "extract", name: "qwen3.5:9b", installed: true, sizeGb: 4.6 },
-      { task: "draft", name: DEFAULT_MODELS.draft, installed: false, sizeGb: 4.6 },
-      { task: "vision", name: DEFAULT_MODELS.vision, installed: false, sizeGb: 4.6 },
+      { task: "draft", name: DEFAULT_MODELS.draft, installed: false, sizeGb: 6.6 },
+      { task: "vision", name: DEFAULT_MODELS.vision, installed: false, sizeGb: 6.6 },
     ]);
     expect(health.missing).toEqual([{ name: DEFAULT_MODELS.draft, command: `ollama pull ${DEFAULT_MODELS.draft}` }]);
     expect(health.ramGb).toBeGreaterThan(0);

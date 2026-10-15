@@ -35,19 +35,19 @@ function scripted(replies: (unknown | Error)[]) {
 }
 
 const Score = z.object({ scored: z.number() });
-const call = { task: "extract" as const, model: "gemma4:e2b", schema: Score, system: "SECRET SYSTEM PROMPT", prompt: "Riya ch5 test 14/20", temperature: 0, timeoutMs: 1000, promptVersion: "v1" };
+const call = { task: "extract" as const, model: "gemma4:latest", schema: Score, system: "SECRET SYSTEM PROMPT", prompt: "Riya ch5 test 14/20", temperature: 0, timeoutMs: 1000, promptVersion: "v1" };
 
 describe("runAi", () => {
   it("logs model, task, tokens and duration, and never the prompt or the reply", async () => {
     const ctx = await workspace();
-    const result = await runAi(ctx, { task: "extract", provider: "ollama", model: "gemma4:e2b", promptVersion: "v1", inputChars: 19 }, async () => ({
+    const result = await runAi(ctx, { task: "extract", provider: "ollama", model: "gemma4:latest", promptVersion: "v1", inputChars: 19 }, async () => ({
       result: { scored: 14, note: "Riya ch5 test 14/20" },
       usage: { promptTokens: 120, completionTokens: 30, durationMs: 900 },
     }));
     expect(result.scored).toBe(14);
 
     const [run] = await runsOf(ctx);
-    expect(run).toMatchObject({ task: "extract", provider: "ollama", model: "gemma4:e2b", promptVersion: "v1", inputChars: 19, promptTokens: 120, completionTokens: 30, ok: true, errorCode: null, memberId: ctx.memberId });
+    expect(run).toMatchObject({ task: "extract", provider: "ollama", model: "gemma4:latest", promptVersion: "v1", inputChars: 19, promptTokens: 120, completionTokens: 30, ok: true, errorCode: null, memberId: ctx.memberId });
     expect(run.durationMs).toBeGreaterThanOrEqual(0);
     expect(JSON.stringify(run)).not.toMatch(/Riya|14\/20/);
   });

@@ -12,7 +12,7 @@ describe("toAiError", () => {
     [new APIUserAbortError(), "cancelled"],
     [new TypeError("fetch failed"), "provider_unreachable"],
     [new APIConnectionError({ message: "Connection error." }), "provider_unreachable"],
-    [Object.assign(new Error("model 'gemma4:e2b' not found"), { name: "ResponseError", status_code: 404 }), "model_missing"],
+    [Object.assign(new Error("model 'gemma4:latest' not found"), { name: "ResponseError", status_code: 404 }), "model_missing"],
     [Object.assign(new Error("Too many requests"), { status: 429 }), "quota"],
     [new SyntaxError("Unexpected token"), "invalid_json"],
     [new Error("something else"), "provider_error"],
