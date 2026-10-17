@@ -26,7 +26,7 @@ export default async function StudentMessagesPage(props: PageProps<"/students/[i
 
   return (
     <AppShell {...shell}>
-      <div className="mx-auto flex w-full max-w-[760px] flex-col gap-5 px-4 pt-4 lg:px-6 lg:pt-8">
+      <div className="mx-auto flex w-full max-w-190 flex-col gap-5 px-4 pt-4 lg:px-6 lg:pt-8">
         <header className="flex items-center gap-2">
           <Link
             href={`/students/${student.id}`}
@@ -36,7 +36,7 @@ export default async function StudentMessagesPage(props: PageProps<"/students/[i
             <ArrowLeft aria-hidden className="size-6" strokeWidth={2.4} />
           </Link>
           <div className="flex min-w-0 flex-col">
-            <h1 className="text-xl leading-tight font-extrabold break-words text-ink-strong lg:text-[28px]">Messages to {parent}</h1>
+            <h1 className="text-xl leading-tight font-extrabold wrap-break-word text-ink-strong lg:text-[28px]">Messages to {parent}</h1>
             <p className="text-[15px] text-muted-foreground">
               {student.fullName}&apos;s updates · {formatPhone(student.parentPhone)}
             </p>

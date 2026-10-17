@@ -71,7 +71,7 @@ export function LoginScreen({ firstName, kind, lockedForMs, reset }: { firstName
   const message = (
     <div id="login-msg" aria-live="assertive" className="flex min-h-12 justify-center">
       {wrong && (
-        <p role="alert" className="flex max-w-[330px] animate-rise items-start gap-2 text-base leading-[1.45] font-extrabold text-on-danger-tint">
+        <p role="alert" className="flex max-w-82.5 animate-rise items-start gap-2 text-base leading-[1.45] font-extrabold text-on-danger-tint">
           <CircleAlert aria-hidden className="mt-0.5 size-5 shrink-0" strokeWidth={2.4} />
           <span>
             That {noun} didn&apos;t match. {triesLeft === 1 ? "1 try" : `${triesLeft} tries`} left before a 10-minute pause.
@@ -81,7 +81,7 @@ export function LoginScreen({ firstName, kind, lockedForMs, reset }: { firstName
       {locked && (
         <div role="status" className="flex w-full items-center gap-3 rounded-md bg-field px-3.5 py-3 text-ink">
           <span aria-hidden className="flex size-10 shrink-0 items-center justify-center rounded-md bg-surface text-ink-strong">
-            <Clock className="size-[22px]" strokeWidth={2.4} />
+            <Clock className="size-5.5" strokeWidth={2.4} />
           </span>
           <span className="flex flex-col gap-0.5 text-[15px] leading-[1.45]">
             <strong className="text-[17px] font-extrabold">
@@ -97,7 +97,7 @@ export function LoginScreen({ firstName, kind, lockedForMs, reset }: { firstName
         </p>
       )}
       {unreachable && (
-        <p role="alert" className="flex max-w-[330px] items-start gap-2 text-base leading-[1.45] font-extrabold text-on-danger-tint">
+        <p role="alert" className="flex max-w-82.5 items-start gap-2 text-base leading-[1.45] font-extrabold text-on-danger-tint">
           <CircleAlert aria-hidden className="mt-0.5 size-5 shrink-0" strokeWidth={2.4} />
           <span>Couldn&apos;t reach TuitionSetu. Check that it&apos;s running on the laptop, then try again.</span>
         </p>
@@ -108,7 +108,7 @@ export function LoginScreen({ firstName, kind, lockedForMs, reset }: { firstName
   return (
     <div className="flex min-h-dvh flex-col lg:bg-field">
       <header className="hidden border-b-2 border-hairline bg-surface lg:block">
-        <div className="mx-auto flex min-h-[70px] max-w-[1096px] items-center gap-2.5 px-4">
+        <div className="mx-auto flex min-h-17.5 max-w-274 items-center gap-2.5 px-4">
           <AppMark />
           <span className="font-display text-2xl font-extrabold tracking-[-0.4px] text-ink-strong">TuitionSetu</span>
         </div>
@@ -116,7 +116,7 @@ export function LoginScreen({ firstName, kind, lockedForMs, reset }: { firstName
       <main className="flex flex-1 justify-center px-4 pt-[max(60px,env(safe-area-inset-top))] pb-[max(34px,env(safe-area-inset-bottom))] lg:items-start lg:py-12">
         <section
           aria-labelledby="login-title"
-          className="flex w-full max-w-[400px] flex-col gap-5 lg:max-w-[520px] lg:gap-[22px] lg:rounded-lg lg:border-2 lg:border-b-4 lg:border-hairline lg:bg-surface lg:p-9"
+          className="flex w-full max-w-100 flex-col gap-5 lg:max-w-130 lg:gap-5.5 lg:rounded-lg lg:border-2 lg:border-b-4 lg:border-hairline lg:bg-surface lg:p-9"
         >
           <div className="flex items-center justify-center gap-2.5 lg:hidden">
             <AppMark />
@@ -214,7 +214,7 @@ export function LoginScreen({ firstName, kind, lockedForMs, reset }: { firstName
           )}
 
           <p className="mt-auto flex items-center justify-center gap-2 text-sm leading-[1.45] text-muted-foreground lg:mt-0">
-            <Lock aria-hidden className="size-[18px] shrink-0" strokeWidth={2.4} />
+            <Lock aria-hidden className="size-4.5 shrink-0" strokeWidth={2.4} />
             Your students&apos; details stay on your machine
           </p>
         </section>

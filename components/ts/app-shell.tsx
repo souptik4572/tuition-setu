@@ -35,7 +35,7 @@ export function AppShell({ children, aiName, userName, phoneNav = true }: { chil
         </div>
       )}
       <header className="hidden border-b-2 border-hairline lg:block">
-        <div className="mx-auto flex min-h-[70px] max-w-[1328px] flex-wrap items-center gap-x-6 gap-y-3 px-6 py-3">
+        <div className="mx-auto flex min-h-17.5 max-w-332 flex-wrap items-center gap-x-6 gap-y-3 px-6 py-3">
           <div className="flex items-center gap-2.5">
             <AppMark />
             <span className="font-display text-2xl font-extrabold tracking-[-0.4px] text-ink-strong">TuitionSetu</span>

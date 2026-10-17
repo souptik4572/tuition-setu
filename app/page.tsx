@@ -48,7 +48,7 @@ export default async function Home() {
 
   return (
     <AppShell {...shell}>
-      <div className="mx-auto flex w-full max-w-[1328px] flex-col gap-6 px-4 pt-6 lg:px-6 lg:pt-8">
+      <div className="mx-auto flex w-full max-w-332 flex-col gap-6 px-4 pt-6 lg:px-6 lg:pt-8">
         {!health.reachable && (
           <Banner variant="caution">
             AI engine is off — your notes are still saved. They&apos;re read as soon as it&apos;s back.
@@ -69,7 +69,7 @@ export default async function Home() {
           <div className="flex flex-col gap-6">
             <Link
               href="/capture"
-              className="flex min-h-[104px] items-center gap-4 rounded-lg bg-sky px-5 py-5 text-on-sky no-underline shadow-[0_4px_0_0_var(--sky-lip)] transition-[transform,box-shadow] duration-[90ms] active:translate-y-1 active:shadow-none lg:min-h-[120px] lg:px-6"
+              className="flex min-h-26 items-center gap-4 rounded-lg bg-sky px-5 py-5 text-on-sky no-underline shadow-[0_4px_0_0_var(--sky-lip)] transition-[transform,box-shadow] duration-90 active:translate-y-1 active:shadow-none lg:min-h-30 lg:px-6"
             >
               <span aria-hidden className="flex size-14 shrink-0 items-center justify-center rounded-md bg-surface text-ocean">
                 <PenLine className="size-7" strokeWidth={2.4} />

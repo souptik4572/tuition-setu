@@ -151,7 +151,7 @@ export function ReviewScreen({ review, canAct }: { review: Review; canAct: boole
   const showDetail = review.chosen && !!detail;
 
   return (
-    <div className="mx-auto flex w-full max-w-[1328px] flex-col gap-6 px-4 pt-4 lg:px-6 lg:pt-8">
+    <div className="mx-auto flex w-full max-w-332 flex-col gap-6 px-4 pt-4 lg:px-6 lg:pt-8">
       <header className={cn("flex flex-wrap items-end justify-between gap-4", showDetail && "hidden lg:flex")}>
         <div className="flex flex-col gap-1">
           <h1 className="font-display text-[34px] leading-[1.1] font-extrabold tracking-[-0.8px] text-ink-strong lg:text-5xl lg:tracking-[-1.2px]">
@@ -161,7 +161,7 @@ export function ReviewScreen({ review, canAct }: { review: Review; canAct: boole
           <p className="text-[17px] text-muted-foreground">{cycle.range} · read each update, then send it yourself</p>
         </div>
         <div className="flex w-full flex-wrap items-end justify-between gap-4 lg:w-auto lg:flex-nowrap">
-          <div className="flex min-w-[200px] flex-1 flex-col gap-1.5 lg:w-[240px] lg:flex-none">
+          <div className="flex min-w-50 flex-1 flex-col gap-1.5 lg:w-60 lg:flex-none">
             <span className="text-[15px] font-extrabold text-ink-strong">
               {review.sent} of {total} sent{review.skipped > 0 && <span className="font-semibold text-muted-foreground"> · {review.skipped} skipped</span>}
             </span>
@@ -196,7 +196,7 @@ export function ReviewScreen({ review, canAct }: { review: Review; canAct: boole
                       href={`/cycles/${cycle.id}?student=${row.id}`}
                       scroll={false}
                       aria-current={selected ? "page" : undefined}
-                      className={cn("flex min-h-[68px] items-center gap-3 px-4 py-2.5 no-underline", selected ? "lg:bg-sky-tint" : "hover:bg-field")}
+                      className={cn("flex min-h-17 items-center gap-3 px-4 py-2.5 no-underline", selected ? "lg:bg-sky-tint" : "hover:bg-field")}
                     >
                       <span aria-hidden className="flex size-10 shrink-0 items-center justify-center rounded-md bg-field text-sm font-extrabold text-ink-strong">
                         {initials(row.fullName)}
@@ -391,7 +391,7 @@ function StudentUpdate({
       return (
         <div className="flex flex-wrap gap-3">
           {detail.hasNotes && (
-            <Key size="big" className="flex-[2]" onClick={onWrite} disabled={disabled}>
+            <Key size="big" className="flex-2" onClick={onWrite} disabled={disabled}>
               <Pencil aria-hidden strokeWidth={2.4} />
               {error ? "Try again" : `Write ${name}'s update`}
             </Key>
@@ -419,7 +419,7 @@ function StudentUpdate({
             <Undo2 aria-hidden strokeWidth={2.4} />
             Undo
           </Key>
-          <Key variant="whatsapp" size="big" className="flex-[3]" onClick={openWhatsApp} disabled={disabled}>
+          <Key variant="whatsapp" size="big" className="flex-3" onClick={openWhatsApp} disabled={disabled}>
             <MessageCircle aria-hidden strokeWidth={2.4} />
             Send on WhatsApp
           </Key>
@@ -559,7 +559,7 @@ function StudentUpdate({
       {detail.facts && (detail.facts.assessments.length > 0 || detail.sources.length > 0) && (
         <Panel title="What I used" sub={detail.sources[0] ? `${student.fullName} · from your note on ${detail.sources[0].day}` : undefined}>
           {detail.sources.map((s, i) => (
-            <blockquote key={i} className="rounded-md bg-field px-4 py-3 text-base leading-normal break-words">
+            <blockquote key={i} className="rounded-md bg-field px-4 py-3 text-base leading-normal wrap-break-word">
               “{s.quote}”
             </blockquote>
           ))}

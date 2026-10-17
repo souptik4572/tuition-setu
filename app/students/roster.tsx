@@ -80,7 +80,7 @@ export function Roster({
   );
 
   return (
-    <div className="mx-auto flex w-full max-w-[1328px] flex-col gap-6 px-4 pt-6 lg:px-6 lg:pt-8">
+    <div className="mx-auto flex w-full max-w-332 flex-col gap-6 px-4 pt-6 lg:px-6 lg:pt-8">
       <header className={cn("flex flex-wrap items-start justify-between gap-4", panel && "hidden lg:flex")}>
         <div className="flex flex-col gap-1">
           <h1 className="font-display text-[40px] leading-[1.1] font-extrabold tracking-[-1px] text-ink-strong lg:text-5xl lg:tracking-[-1.2px]">Students</h1>
@@ -139,13 +139,13 @@ export function Roster({
           <Tabs.Content value="active" className="flex flex-col gap-4">
             {active.length === 0 ? (
               <section aria-labelledby="roster-empty" className="flex flex-col items-center gap-3 rounded-lg bg-field px-6 py-10 text-center">
-                <span aria-hidden className="flex size-[72px] items-center justify-center rounded-lg bg-sky-tint text-ocean">
+                <span aria-hidden className="flex size-18 items-center justify-center rounded-lg bg-sky-tint text-ocean">
                   <Users className="size-9" strokeWidth={2.2} />
                 </span>
                 <h2 id="roster-empty" className="text-[22px] font-extrabold text-ink-strong">
                   No students yet
                 </h2>
-                <p className="max-w-[400px] text-base leading-normal text-muted-foreground">Add the children you teach. Their names stay on your machine.</p>
+                <p className="max-w-100 text-base leading-normal text-muted-foreground">Add the children you teach. Their names stay on your machine.</p>
                 {canEdit && (
                   <KeyLink href="/students/new" className="mt-2">
                     <Plus aria-hidden strokeWidth={2.6} />
@@ -200,7 +200,7 @@ export function Roster({
                 <ul className="flex flex-col gap-2.5 lg:hidden">
                   {shown.map((s) => (
                     <li key={s.id}>
-                      <Link href={`/students/${s.id}`} className="flex min-h-[72px] items-center gap-3.5 rounded-lg border-2 border-hairline bg-surface px-4 py-3 no-underline">
+                      <Link href={`/students/${s.id}`} className="flex min-h-18 items-center gap-3.5 rounded-lg border-2 border-hairline bg-surface px-4 py-3 no-underline">
                         <span aria-hidden className={tile}>
                           {s.fullName.trim()[0]?.toUpperCase()}
                         </span>
