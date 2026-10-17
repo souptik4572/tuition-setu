@@ -70,3 +70,8 @@ export async function listStudentDrafts(ctx: DbCtx, studentId: string) {
 export async function updateDraft(ctx: DbCtx, id: string, patch: DraftPatch): Promise<Draft | null> {
   return withDb(ctx, async (db) => (await db.update(drafts).set(patch).where(own(drafts, ctx, id)).returning())[0] ?? null);
 }
+
+/** Undo skip for a student who had no draft: the empty placeholder goes. */
+export async function deleteDraft(ctx: DbCtx, id: string): Promise<void> {
+  await withDb(ctx, (db) => db.delete(drafts).where(own(drafts, ctx, id)));
+}

@@ -9,7 +9,7 @@ const sections = [
   { href: "/", label: "Home", match: (p: string) => p === "/" },
   { href: "/cycles/current", label: "Review", match: (p: string) => p.startsWith("/cycles") },
   { href: "/students", label: "Students", match: (p: string) => p.startsWith("/students") },
-  { href: "/settings", label: "Settings", match: (p: string) => p.startsWith("/settings") },
+  // Settings joins once it's built (M11, cut from the MVP; IMPL §1.1).
 ];
 
 export function DesktopNav() {

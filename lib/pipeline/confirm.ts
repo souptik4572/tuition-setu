@@ -3,6 +3,7 @@ import { deleteEntryAssessments, insertAssessments } from "@/lib/db/queries/asse
 import { getEntry, updateEntry, type Entry } from "@/lib/db/queries/entries";
 import { getNote } from "@/lib/db/queries/notes";
 import type { DbCtx } from "@/lib/db/types";
+import { markStale } from "./stale";
 
 const RESOLVED = new Set<Entry["resolution"]>(["exact", "alias", "fuzzy", "manual"]);
 
@@ -23,7 +24,10 @@ export async function autoConfirm(ctx: DbCtx, entryId: string): Promise<Entry | 
       ctx,
       scores.map((s) => ({ ...s, studentId: entry.studentId!, cycleId: entry.cycleId, entryId, takenOn: note!.classDate })),
     );
-    return updateEntry(ctx, entryId, { confirmedAt: new Date().toISOString() });
+    const confirmed = await updateEntry(ctx, entryId, { confirmedAt: new Date().toISOString() });
+    // A draft written before this note doesn't include it (§4.1).
+    await markStale(ctx, entry.cycleId, entry.studentId);
+    return confirmed;
   });
 }
 

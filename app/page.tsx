@@ -1,4 +1,4 @@
-import { ChevronRight, Laptop, PenLine, Settings, TriangleAlert } from "lucide-react";
+import { ChevronRight, Laptop, PenLine, TriangleAlert } from "lucide-react";
 import Link from "next/link";
 import { AppShell } from "@/components/ts/app-shell";
 import { Banner } from "@/components/ts/banner";
@@ -61,9 +61,6 @@ export default async function Home() {
             <StatusPill mode={hosted ? "hosted" : "local"} name={shell.aiName} className="lg:hidden" />
             <p className="hidden text-[17px] text-muted-foreground lg:block">Week of {range}</p>
           </div>
-          <Link href="/settings" aria-label="Settings" className="flex size-12 shrink-0 items-center justify-center rounded-md border-2 border-hairline text-ink-strong shadow-[0_2px_0_0_var(--hairline)] lg:hidden">
-            <Settings aria-hidden className="size-6" strokeWidth={2.2} />
-          </Link>
         </header>
 
         <div className="flex flex-col gap-6 lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(320px,400px)] lg:items-start lg:gap-8">
