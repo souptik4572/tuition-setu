@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowLeft, Check, CircleHelp, History, MessageCircle, Pencil, RefreshCw, SkipForward, Square, ThumbsUp, TriangleAlert, Undo2 } from "lucide-react";
+import { ArrowLeft, Check, CircleHelp, History, MessageCircle, Pencil, RefreshCw, SkipForward, Square, ThumbsUp, TriangleAlert, Undo2, UserCheck, X } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useRef, useState, useTransition, type ReactNode } from "react";
@@ -13,7 +13,7 @@ import { StatusChip } from "@/components/ts/status-chip";
 import type { ActionResult } from "@/lib/auth/types";
 import { LANGUAGE_LABEL, type Language } from "@/lib/schemas/common";
 import { cn } from "@/lib/utils";
-import { approveDraft, completeCycle, editDraft, markSent, skipStudent, unapproveDraft, unskipStudent } from "../actions";
+import { approveDraft, completeCycle, dismissFlag, editDraft, markSent, restoreFlag, skipStudent, unapproveDraft, unskipStudent } from "../actions";
 import type { ReviewDetail, ReviewRow } from "../data";
 
 const UNREACHABLE = "TuitionSetu couldn't do that. Check that it's still running on the laptop, then try again.";
@@ -315,15 +315,48 @@ function StudentUpdate({
   let banner: ReactNode = null;
   if (writing !== null) banner = null;
   else if (error) banner = <Banner variant="flag">{`Couldn't write ${name}'s update. ${error}`}</Banner>;
+  else if (status === "ready" && draft?.override)
+    banner = (
+      <Banner
+        variant="success"
+        icon={UserCheck}
+        action={
+          act && (
+            <Key variant="text" size="small" className="-my-2" onClick={() => run(() => restoreFlag(draft.id))} disabled={disabled}>
+              Undo
+            </Key>
+          )
+        }
+      >
+        Warning dismissed — you checked it yourself
+      </Banner>
+    );
   else if (status === "ready") banner = <Banner variant="success">Checked — every number matches your notes</Banner>;
   else if (status === "flagged")
     banner = (
-      <Banner variant="flag">
+      <Banner
+        variant="flag"
+        action={
+          act &&
+          draft && (
+            <button
+              type="button"
+              aria-label="Dismiss warning"
+              title="Dismiss warning"
+              onClick={() => run(() => dismissFlag(draft.id))}
+              disabled={disabled}
+              className="-my-2 -mr-2 flex size-11 shrink-0 cursor-pointer items-center justify-center self-start rounded-md hover:bg-highlight disabled:cursor-default disabled:opacity-50"
+            >
+              <X aria-hidden className="size-5" strokeWidth={2.6} />
+            </button>
+          )
+        }
+      >
         <span className="flex flex-col gap-0.5">
           {blocking.map((i, n) => (
             <span key={n}>{i.message}</span>
           ))}
-          <span className="font-semibold">Fix it, or edit the message yourself.</span>
+          <span className="font-semibold">{act ? "Edit the message yourself, or dismiss this if it's right." : "Fix it, or edit the message yourself."}</span>
         </span>
       </Banner>
     );
@@ -488,7 +521,7 @@ function StudentUpdate({
             message={draft.message}
             language={student.language}
             bodyOffset={draft.bodyOffset}
-            highlights={issues.filter((i) => i.end > i.start && i.severity !== "warning").map((i) => ({ start: i.start, end: i.end, label: i.message }))}
+            highlights={draft.override ? undefined : issues.filter((i) => i.end > i.start && i.severity !== "warning").map((i) => ({ start: i.start, end: i.end, label: i.message }))}
           />
         ) : (
           <p className="rounded-md bg-field px-4 py-5 text-base leading-normal text-muted-foreground">

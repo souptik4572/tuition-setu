@@ -8,7 +8,7 @@ TuitionSetu does the Sunday part:
 
 1. **She types the note as she always does**, on her phone or laptop, right after class.
 2. **The laptop reads it** with a local model: who each line is about, scores, homework, attendance. Anything it isn't sure of (a name it doesn't know, a score without a total) waits in **Needs you**; it never guesses.
-3. **On report day it writes each parent's update** in the parent's language and checks it against her notes: every number must come from them, no other child may be named, and the language must be right. A number the model made up is highlighted, and the update can't be approved until it's fixed.
+3. **On report day it writes each parent's update** in the parent's language and checks it against her notes: every number must come from them, no other child may be named, and the language must be right. A number the model made up is highlighted, and the update can't be approved until she fixes it or dismisses the warning herself.
 4. **She reads, approves and taps Send on WhatsApp.** WhatsApp opens with the message ready; she presses Send herself.
 
 Children's details never leave the laptop. There is no cloud account, no API key and no per-message cost.

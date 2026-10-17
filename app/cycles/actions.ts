@@ -14,7 +14,8 @@ import { checkAndAssemble, loadDraftContext } from "@/lib/pipeline/draft";
 const CHANGE = "Only owners and teachers can change updates.";
 const GONE = { ok: false, error: { code: "not_found", message: "This update isn't here any more. It may have changed on another device." } } as const;
 const conflict = (message: string) => ({ ok: false as const, error: { code: "conflict" as const, message } });
-const guardStatus = (draft: Draft): Draft["status"] => (draft.guardJson?.status === "pass" ? "ready" : "flagged");
+// A dismissed flag (`override`) counts as checked until the text changes.
+const guardStatus = (draft: Draft): Draft["status"] => (draft.override || draft.guardJson?.status === "pass" ? "ready" : "flagged");
 
 /**
  * The tutor's own wording for the body (§S11). The guard runs again; an out-of-date draft is
@@ -48,7 +49,7 @@ export async function editDraft(id: string, body: string): Promise<ActionResult<
   });
 }
 
-/** S11: a checked draft, or a flagged one with Send anyway (recorded as an override). Never an out-of-date one. */
+/** S11: a checked draft, one whose flag was dismissed, or a flagged one with Send anyway (recorded as an override). Never an out-of-date one. */
 export async function approveDraft(id: string, opts: { override: boolean }): Promise<ActionResult<null>> {
   return asMember("teacher", CHANGE, async (ctx) => {
     const result = await withDb(ctx, async (): Promise<ActionResult<null>> => {
@@ -57,9 +58,9 @@ export async function approveDraft(id: string, opts: { override: boolean }): Pro
       if (draft.status === "stale") return conflict("Approve is off until the update matches your notes. Write it again first.");
       if (draft.status === "flagged" && !opts.override) return conflict("Fix the flagged part, or choose Send anyway.");
       if (draft.status !== "ready" && draft.status !== "flagged") return conflict("This update can't be approved now.");
-      const override = draft.status === "flagged";
+      const override = draft.override || draft.status === "flagged";
       await updateDraft(ctx, id, { status: "approved", override, approvedBy: ctx.memberId, approvedAt: new Date().toISOString() });
-      if (override) await audit(ctx, "guard_override", { table: "drafts", id });
+      if (draft.status === "flagged") await audit(ctx, "guard_override", { table: "drafts", id });
       await audit(ctx, "draft_approved", { table: "drafts", id });
       return { ok: true, data: null };
     });
@@ -74,7 +75,36 @@ export async function unapproveDraft(id: string): Promise<ActionResult<null>> {
     const result = await withDb(ctx, async (): Promise<ActionResult<null>> => {
       const draft = await getDraft(ctx, id);
       if (draft?.status !== "approved") return GONE;
-      await updateDraft(ctx, id, { status: guardStatus(draft), override: false, approvedBy: null, approvedAt: null });
+      await updateDraft(ctx, id, { status: guardStatus(draft), approvedBy: null, approvedAt: null });
+      return { ok: true, data: null };
+    });
+    if (result.ok) refresh();
+    return result;
+  });
+}
+
+/** The tutor has read what the guard flagged and accepts it as written: the draft is ready to approve, recorded as an override. */
+export async function dismissFlag(id: string): Promise<ActionResult<null>> {
+  return asMember("teacher", CHANGE, async (ctx) => {
+    const result = await withDb(ctx, async (): Promise<ActionResult<null>> => {
+      const draft = await getDraft(ctx, id);
+      if (draft?.status !== "flagged") return GONE;
+      await updateDraft(ctx, id, { status: "ready", override: true });
+      await audit(ctx, "guard_override", { table: "drafts", id });
+      return { ok: true, data: null };
+    });
+    if (result.ok) refresh();
+    return result;
+  });
+}
+
+/** Undo on a dismissed flag. */
+export async function restoreFlag(id: string): Promise<ActionResult<null>> {
+  return asMember("teacher", CHANGE, async (ctx) => {
+    const result = await withDb(ctx, async (): Promise<ActionResult<null>> => {
+      const draft = await getDraft(ctx, id);
+      if (draft?.status !== "ready" || !draft.override) return GONE;
+      await updateDraft(ctx, id, { status: "flagged", override: false });
       return { ok: true, data: null };
     });
     if (result.ok) refresh();

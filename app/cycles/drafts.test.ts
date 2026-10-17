@@ -16,7 +16,7 @@ import { autoConfirm } from "@/lib/pipeline/confirm";
 import type { ExtractedEntry } from "@/lib/schemas/extraction";
 import { WorkspaceSettings } from "@/lib/schemas/settings";
 import { StudentInput } from "@/lib/schemas/student";
-import { approveDraft, editDraft, markSent, skipStudent, unskipStudent } from "./actions";
+import { approveDraft, dismissFlag, editDraft, markSent, restoreFlag, skipStudent, unapproveDraft, unskipStudent } from "./actions";
 
 const jar = new Map<string, string>();
 vi.mock("next/headers", () => ({
@@ -175,6 +175,31 @@ describe("out of date, approve and send", () => {
 
     await addNote("Riya ch5 retest 15/20", 15, 20);
     expect(await getDraft(ctx, done.draft.id)).toMatchObject({ status: "sent", sentAt: expect.any(String) });
+  });
+
+  it("dismisses a flag so the draft can be approved as written; Undo and editing bring the check back", async () => {
+    const { ctx, riya, cycle } = await week();
+    script = { chunks: [BODY.replace("14/20", "18/20")] };
+    const { done } = await generate(cycle.id, riya.id);
+    const id = done.draft.id;
+    expect(await restoreFlag(id)).toMatchObject({ ok: false });
+
+    expect(await dismissFlag(id)).toEqual({ ok: true, data: null });
+    expect(await getDraft(ctx, id)).toMatchObject({ status: "ready", override: true });
+    expect(await restoreFlag(id)).toEqual({ ok: true, data: null });
+    expect(await getDraft(ctx, id)).toMatchObject({ status: "flagged", override: false });
+
+    await dismissFlag(id);
+    expect(await approveDraft(id, { override: false })).toEqual({ ok: true, data: null });
+    expect(await getDraft(ctx, id)).toMatchObject({ status: "approved", override: true });
+    await unapproveDraft(id);
+    expect(await getDraft(ctx, id)).toMatchObject({ status: "ready", override: true });
+    const events = await withDb(ctx, (db) => db.select().from(auditEvents).where(eq(auditEvents.workspaceId, ctx.workspaceId)));
+    expect(events.map((e) => e.action)).toEqual(["guard_override", "guard_override", "draft_approved"]);
+
+    expect(await editDraft(id, BODY.replace("14/20", "19/20"))).toEqual({ ok: true, data: { status: "flagged" } });
+    expect(await getDraft(ctx, id)).toMatchObject({ status: "flagged", override: false });
+    expect(await dismissFlag(id)).toEqual({ ok: true, data: null });
   });
 
   it("skips a student without a draft, and Undo removes the placeholder", async () => {
