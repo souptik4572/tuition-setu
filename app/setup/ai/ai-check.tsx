@@ -9,7 +9,7 @@ import { Key, KeyLink } from "@/components/ts/key";
 import { SetupAside, SetupColumns, setupCard } from "@/components/ts/setup-frame";
 import type { AiErrorCode } from "@/lib/ai/errors";
 import type { Health } from "@/lib/ai/health";
-import { DOWNLOAD_GB, MIN_RAM_GB, QUALITY_DRAFT_MODEL, type ModelTask } from "@/lib/ai/models";
+import { DOWNLOAD_GB, MIN_RAM_GB, type ModelTask } from "@/lib/ai/models";
 import { cn } from "@/lib/utils";
 import { setQualityMode } from "./actions";
 
@@ -32,11 +32,15 @@ function roles(tasks: ModelTask[]) {
 export function AiCheck({
   health,
   qualityMode,
+  qualityModel,
+  qualityLocked,
   terminal,
   restartAi,
 }: {
   health: Health;
   qualityMode: boolean;
+  qualityModel: string;
+  qualityLocked: boolean;
   terminal: { app: string; how: string };
   restartAi: string;
 }) {
@@ -50,12 +54,12 @@ export function AiCheck({
   // One row per model: by default a single model reads and writes.
   const rows = new Map<string, Health["models"][number] & { tasks: ModelTask[] }>();
   for (const m of health.models) rows.set(m.name, { ...m, tasks: [...(rows.get(m.name)?.tasks ?? []), m.task] });
-  const qualitySize = sizeText(DOWNLOAD_GB[QUALITY_DRAFT_MODEL]);
+  const qualitySize = sizeText(DOWNLOAD_GB[qualityModel]);
   const ready = health.reachable && health.models.filter((m) => m.task !== "vision").every((m) => m.installed);
   const missing = new Set(health.missing.map((m) => m.name));
   const ramOk = Math.round(health.ramGb) >= MIN_RAM_GB;
-  // Not offered when the writing model already is the larger one (chosen in the environment).
-  const offerQuality = health.qualityModeAvailable && health.provider === "ollama" && (qualityMode || health.models.find((m) => m.task === "draft")?.name !== QUALITY_DRAFT_MODEL);
+  // Not offered when .env.local fixes the writing model, or it already is the larger one.
+  const offerQuality = health.qualityModeAvailable && health.provider === "ollama" && !qualityLocked && (qualityMode || health.models.find((m) => m.task === "draft")?.name !== qualityModel);
 
   const checkAgain = () => startCheck(() => router.refresh());
 
@@ -189,7 +193,7 @@ export function AiCheck({
                   Quality mode
                 </span>
                 <span id="quality-help" className="text-[15px] leading-[1.45] text-muted-foreground">
-                  This laptop has the memory for a larger writing model, {QUALITY_DRAFT_MODEL}. Updates read more naturally and take a little longer.
+                  This laptop has the memory for a larger writing model, {qualityModel}. Updates read more naturally and take a little longer.
                   {qualitySize && ` It downloads ${qualitySize} once.`}
                 </span>
               </span>

@@ -1,6 +1,8 @@
-// Which models to use (§11.2). Provisional until the M7 eval measures the candidates. The
-// defaults use the `gemma4:latest` tag, which Ollama currently points at the 4B "e4b" build, and
-// quality mode offers a larger model where there is RAM for it. setup.sh (M8) reads these too.
+// Which models to use (§11.2), when `.env.local` doesn't say: MODEL_EXTRACT, MODEL_DRAFT and
+// MODEL_VISION replace the defaults below, MODEL_QUALITY_DRAFT the quality model, and
+// MODEL_ALTERNATES the reading candidates (`modelFor` and friends in ./index). Provisional until
+// the M7 eval measures the candidates. The defaults use the `gemma4:latest` tag, which Ollama
+// currently points at the 4B "e4b" build. setup.sh (M8) reads these too.
 
 export type ModelTask = "extract" | "draft" | "vision";
 

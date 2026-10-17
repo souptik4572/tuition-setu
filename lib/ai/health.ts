@@ -7,8 +7,8 @@ import { todayIn } from "@/lib/util/dates";
 import { extractNumbers } from "@/lib/util/digits";
 import { isLoopbackHost } from "@/lib/util/lan";
 import { AiError, toAiError, type AiErrorCode } from "./errors";
-import { getProvider, modelFor, providerUrl } from "./index";
-import { DOWNLOAD_GB, QUALITY_MODE_MIN_RAM_GB, READING_CANDIDATES, type ModelTask } from "./models";
+import { getProvider, modelFor, providerUrl, readingAlternates } from "./index";
+import { DOWNLOAD_GB, QUALITY_MODE_MIN_RAM_GB, type ModelTask } from "./models";
 import { OllamaProvider } from "./ollama";
 import { OpenAICompatibleProvider } from "./openai-compatible";
 import { extractPrompt, EXTRACT_PROMPT_VERSION } from "./prompts/extract";
@@ -159,7 +159,7 @@ export async function alternateModel(aiConfig?: AiConfig): Promise<{ name: strin
     const { models } = await provider.client(AbortSignal.timeout(LIST_TIMEOUT_MS)).list();
     const byName = new Map(models.map((m) => [withTag(m.name), m]));
     const current = byName.get(withTag(modelFor("extract", aiConfig)));
-    for (const name of READING_CANDIDATES) {
+    for (const name of readingAlternates()) {
       const other = byName.get(withTag(name));
       if (other && other.digest !== current?.digest) return { name: withTag(name), faster: !!current && other.size < current.size * 0.9 };
     }

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { SetupFrame } from "@/components/ts/setup-frame";
+import { configuredModel, qualityDraftModel } from "@/lib/ai";
 import { getHealth } from "@/lib/ai/health";
 import { requirePageMember } from "@/lib/auth/require-member";
 import { getWorkspace } from "@/lib/db/queries/workspaces";
@@ -17,7 +18,15 @@ export default async function AiCheckPage() {
   const { terminal, restartAi } = hostPlatform();
   return (
     <SetupFrame step={3}>
-      <AiCheck health={health} qualityMode={aiConfig.qualityMode === true} terminal={terminal} restartAi={restartAi} />
+      <AiCheck
+        health={health}
+        qualityMode={aiConfig.qualityMode === true}
+        qualityModel={qualityDraftModel()}
+        // A writing model named in .env.local wins over quality mode, so the switch would do nothing.
+        qualityLocked={configuredModel("draft") !== undefined}
+        terminal={terminal}
+        restartAi={restartAi}
+      />
     </SetupFrame>
   );
 }

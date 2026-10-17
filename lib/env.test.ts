@@ -31,6 +31,12 @@ describe("parseEnv", () => {
     expect(env.SESSION_TTL_DAYS).toBe(30);
   });
 
+  it("reads the model settings, with the alternates as a list", () => {
+    const env = parseEnv({ MODEL_DRAFT: "qwen3.5:9b", MODEL_QUALITY_DRAFT: "gemma4:12b", MODEL_ALTERNATES: " qwen3.5:9b, ,gemma4:e4b " });
+    expect(env).toMatchObject({ MODEL_DRAFT: "qwen3.5:9b", MODEL_QUALITY_DRAFT: "gemma4:12b", MODEL_ALTERNATES: ["qwen3.5:9b", "gemma4:e4b"] });
+    expect(parseEnv({ MODEL_ALTERNATES: "" }).MODEL_ALTERNATES).toBeUndefined();
+  });
+
   it("parses booleans and numbers", () => {
     const env = parseEnv({ ...hosted, PREVIEW_INSTANCE: "true", SEED_SAMPLE: "1", AI_QUOTA_DRAFTS_PER_MEMBER_HOUR: "12" });
     expect(env.PREVIEW_INSTANCE).toBe(true);

@@ -11,6 +11,11 @@ const schema = z
     MODEL_EXTRACT: z.string().optional(),
     MODEL_DRAFT: z.string().optional(),
     MODEL_VISION: z.string().optional(),
+    MODEL_QUALITY_DRAFT: z.string().optional(),
+    MODEL_ALTERNATES: z
+      .string()
+      .optional()
+      .transform((list) => list?.split(",").map((name) => name.trim()).filter(Boolean)),
     OPENAI_COMPAT_BASE_URL: z.url().optional(),
     OPENAI_COMPAT_API_KEY: z.string().optional(),
     DATABASE_PATH: z.string().default("./data/tuition-setu.db"),

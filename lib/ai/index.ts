@@ -1,7 +1,7 @@
 import "server-only";
 import { env } from "@/lib/env";
 import type { AiConfig } from "@/lib/schemas/settings";
-import { DEFAULT_MODELS, QUALITY_DRAFT_MODEL, type ModelTask } from "./models";
+import { DEFAULT_MODELS, QUALITY_DRAFT_MODEL, READING_CANDIDATES, type ModelTask } from "./models";
 import { OllamaProvider } from "./ollama";
 import { OpenAICompatibleProvider } from "./openai-compatible";
 import type { AIProvider } from "./provider";
@@ -24,16 +24,22 @@ export function providerUrl(): string {
   return env.AI_PROVIDER === "openai-compatible" ? env.OPENAI_COMPAT_BASE_URL! : env.OLLAMA_HOST;
 }
 
-const ENV_MODELS: Record<ModelTask, string | undefined> = {
-  extract: env.MODEL_EXTRACT,
-  draft: env.MODEL_DRAFT,
-  vision: env.MODEL_VISION,
-};
+const CONFIG_KEY = { extract: "MODEL_EXTRACT", draft: "MODEL_DRAFT", vision: "MODEL_VISION" } as const;
+
+/** The model `.env.local` names for a task, if it names one. */
+export const configuredModel = (task: ModelTask): string | undefined => env[CONFIG_KEY[task]];
+
+/** Quality mode's larger writing model (§3 B4): MODEL_QUALITY_DRAFT, or the default. */
+export const qualityDraftModel = (): string => env.MODEL_QUALITY_DRAFT ?? QUALITY_DRAFT_MODEL;
+
+/** Models "Try the other model" may use for a note that couldn't be read: MODEL_ALTERNATES, or the defaults. */
+export const readingAlternates = (): string[] => env.MODEL_ALTERNATES ?? READING_CANDIDATES;
 
 /**
- * Model for a task: the workspace's choice in Settings, then quality mode (drafts only), then
- * `MODEL_*` from the environment, then the provisional default (§13.1, IMPL M3).
+ * Model for a task (§13.1). A model named in `.env.local` always wins, so models can be swapped by
+ * editing it and restarting; then quality mode (drafts only, set in B4); then the default in
+ * ./models. A per-task choice in Settings (M11, not built) comes before all of them.
  */
 export function modelFor(task: ModelTask, aiConfig: AiConfig = {}): string {
-  return aiConfig[task] ?? (task === "draft" && aiConfig.qualityMode ? QUALITY_DRAFT_MODEL : undefined) ?? ENV_MODELS[task] ?? DEFAULT_MODELS[task];
+  return aiConfig[task] ?? configuredModel(task) ?? (task === "draft" && aiConfig.qualityMode ? qualityDraftModel() : undefined) ?? DEFAULT_MODELS[task];
 }

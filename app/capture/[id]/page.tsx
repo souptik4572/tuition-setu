@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { AppShell } from "@/components/ts/app-shell";
+import { modelFor } from "@/lib/ai";
 import { alternateModel } from "@/lib/ai/health";
 import { requirePageMember } from "@/lib/auth/require-member";
 import { listNoteEntries, type Entry } from "@/lib/db/queries/entries";
@@ -58,6 +59,7 @@ export default async function NotePage(props: PageProps<"/capture/[id]">) {
         }}
         rows={rows}
         alternate={alternate}
+        readingModel={modelFor("extract", workspace.aiConfigJson)}
         local={env.APP_MODE === "local"}
       />
     </AppShell>

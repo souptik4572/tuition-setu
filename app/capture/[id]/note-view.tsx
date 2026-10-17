@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useTransition, type ReactNode } from "react";
 import { Banner } from "@/components/ts/banner";
+import { CopyCommand } from "@/components/ts/copy-command";
 import { helpClass, inputClass } from "@/components/ts/field";
 import { Key, KeyLink } from "@/components/ts/key";
 import { StatusChip } from "@/components/ts/status-chip";
@@ -51,7 +52,19 @@ function ErrorCard({ icon, title, tag, children }: { icon: ReactNode; title: str
  * A saved note (D-24): "Reading your notes…" until it's read, then each student it mentions, or,
  * when it couldn't be read, the note as typed with the actions for the cause (§4.1, F2).
  */
-export function NoteView({ note, rows, alternate, local }: { note: NoteData; rows: NoteRow[]; alternate: { name: string; faster: boolean } | null; local: boolean }) {
+export function NoteView({
+  note,
+  rows,
+  alternate,
+  readingModel,
+  local,
+}: {
+  note: NoteData;
+  rows: NoteRow[];
+  alternate: { name: string; faster: boolean } | null;
+  readingModel: string;
+  local: boolean;
+}) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
@@ -183,7 +196,18 @@ export function NoteView({ note, rows, alternate, local }: { note: NoteData; row
               {alternateKey}
             </ErrorCard>
           )}
-          {engineOff && (
+          {note.errorCode === "model_missing" && (
+            <ErrorCard icon={<Laptop strokeWidth={2.2} />} title="The reading model isn't installed" tag={local ? "Laptop version only" : undefined}>
+              <p className="text-base leading-normal">TuitionSetu is set to read notes with {readingModel}, but it isn&apos;t on this laptop. On the laptop, open {local ? "Terminal" : "a terminal"} and run:</p>
+              <CopyCommand command={`ollama pull ${readingModel}`} />
+              <p className="flex items-center gap-2 rounded-md bg-sky-tint px-3.5 py-3 text-base font-extrabold text-on-sky-tint">
+                <Clock aria-hidden className="size-5 shrink-0" strokeWidth={2.4} />
+                We&apos;ll read it as soon as it&apos;s installed
+              </p>
+              <span className={helpClass}>Or change MODEL_EXTRACT in .env.local to a model you have, then restart TuitionSetu.</span>
+            </ErrorCard>
+          )}
+          {note.errorCode === "provider_unreachable" && (
             <ErrorCard icon={<Laptop strokeWidth={2.2} />} title="The AI engine is off" tag={local ? "Laptop version only" : undefined}>
               <p className="text-base leading-normal">TuitionSetu&apos;s reader isn&apos;t running on the laptop right now — maybe it restarted or went to sleep.</p>
               <p className="flex items-center gap-2 rounded-md bg-sky-tint px-3.5 py-3 text-base font-extrabold text-on-sky-tint">
