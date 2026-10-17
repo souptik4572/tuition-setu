@@ -40,14 +40,61 @@ export function segmentMessage(message: string, highlights: Highlight[] = [], bo
   return segments;
 }
 
-export function MessageBubble({
-  header,
+/** One outgoing WhatsApp bubble; `meta` is the small line under the text ("Preview · not sent", "Sent …"). */
+export function Bubble({
   message,
   language,
+  meta,
   highlights,
   bodyOffset,
   streaming = false,
   className,
+}: {
+  message: string;
+  language: "en" | "bn" | "hi";
+  meta: string;
+  highlights?: Highlight[];
+  bodyOffset?: number;
+  streaming?: boolean;
+  className?: string;
+}) {
+  const segments = segmentMessage(message, highlights, bodyOffset);
+  return (
+    <div
+      lang={language}
+      className={cn(
+        "flex max-w-[92%] flex-col gap-2 self-end rounded-[16px_4px_16px_16px] bg-bubble px-4 pt-3.5 pb-2.5 text-ink",
+        language === "en" ? "text-base leading-normal" : "text-[17px] leading-[1.6]",
+        className,
+      )}
+    >
+      <p className="m-0 whitespace-pre-wrap break-words">
+        {segments.map((s, i) => {
+          const text = s.bold ? <strong className="font-extrabold">{s.text}</strong> : s.text;
+          if (!s.highlight) return <span key={i}>{text}</span>;
+          return (
+            <mark
+              key={i}
+              className="rounded-[4px] border-b-[3px] border-orange bg-highlight px-1 py-px font-extrabold text-on-mark"
+            >
+              {text}
+              <span className="sr-only"> ({s.highlight})</span>
+            </mark>
+          );
+        })}
+        {streaming && <span aria-hidden className="ml-0.5 inline-block h-[1.1em] w-0.5 translate-y-[0.15em] animate-caret bg-ink" />}
+      </p>
+      <span lang="en" className="self-end text-[13px] text-bubble-meta">
+        {meta}
+      </span>
+    </div>
+  );
+}
+
+export function MessageBubble({
+  header,
+  className,
+  ...bubble
 }: {
   header: string;
   message: string;
@@ -57,37 +104,10 @@ export function MessageBubble({
   streaming?: boolean;
   className?: string;
 }) {
-  const segments = segmentMessage(message, highlights, bodyOffset);
   return (
     <div className={cn("flex flex-col gap-2 rounded-md bg-field px-4 py-5", className)}>
       <span className="text-sm text-muted-foreground">{header}</span>
-      <div
-        lang={language}
-        className={cn(
-          "flex max-w-[92%] flex-col gap-2 self-end rounded-[16px_4px_16px_16px] bg-bubble px-4 pt-3.5 pb-2.5 text-ink",
-          language === "en" ? "text-base leading-normal" : "text-[17px] leading-[1.6]",
-        )}
-      >
-        <p className="m-0 whitespace-pre-wrap break-words">
-          {segments.map((s, i) => {
-            const text = s.bold ? <strong className="font-extrabold">{s.text}</strong> : s.text;
-            if (!s.highlight) return <span key={i}>{text}</span>;
-            return (
-              <mark
-                key={i}
-                className="rounded-[4px] border-b-[3px] border-orange bg-highlight px-1 py-px font-extrabold text-on-mark"
-              >
-                {text}
-                <span className="sr-only"> ({s.highlight})</span>
-              </mark>
-            );
-          })}
-          {streaming && <span aria-hidden className="ml-0.5 inline-block h-[1.1em] w-0.5 translate-y-[0.15em] animate-caret bg-ink" />}
-        </p>
-        <span lang="en" className="self-end text-[13px] text-bubble-meta">
-          Preview · not sent
-        </span>
-      </div>
+      <Bubble {...bubble} meta="Preview · not sent" />
     </div>
   );
 }

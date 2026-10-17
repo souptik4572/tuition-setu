@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { render } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import { MessageBubble, segmentMessage } from "./message-bubble";
+import { Bubble, MessageBubble, segmentMessage } from "./message-bubble";
 
 describe("segmentMessage", () => {
   it("renders *bold* without its asterisks", () => {
@@ -50,5 +50,15 @@ describe("MessageBubble", () => {
     );
     const mark = container.querySelector("mark")!;
     expect(mark.textContent).toBe("18/25 (Not in your notes)");
+  });
+});
+
+describe("Bubble", () => {
+  it("shows the whole message with its own line underneath", () => {
+    const message = "*Weekly update — Riya (5–11 Oct)*\nHello Mrs Sen,\n\nRiya scored 14/20.\n\n— Mita Ma'am";
+    const { container, getByText } = render(<Bubble language="en" message={message} meta="Sent Sun 11 Oct, 8:00 PM" />);
+    expect(container.textContent).toBe("Weekly update — Riya (5–11 Oct)\nHello Mrs Sen,\n\nRiya scored 14/20.\n\n— Mita Ma'amSent Sun 11 Oct, 8:00 PM");
+    expect(getByText("Sent Sun 11 Oct, 8:00 PM").getAttribute("lang")).toBe("en");
+    expect(container.textContent).not.toContain("Preview");
   });
 });

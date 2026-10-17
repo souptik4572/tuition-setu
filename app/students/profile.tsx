@@ -239,10 +239,16 @@ export function Profile({
                 <p lang={u.language} className="line-clamp-2 text-base leading-normal">
                   {u.body}
                 </p>
-                {u.open && (
-                  <Link href={`/cycles/${u.cycleId}?student=${student.id}`} className="self-start text-base font-extrabold text-ocean">
-                    Open update
+                {u.status === "sent" ? (
+                  <Link href={`/students/${student.id}/messages#week-${u.cycleId}`} className="self-start text-base font-extrabold text-ocean">
+                    Read message
                   </Link>
+                ) : (
+                  u.open && (
+                    <Link href={`/cycles/${u.cycleId}?student=${student.id}`} className="self-start text-base font-extrabold text-ocean">
+                      Open update
+                    </Link>
+                  )
                 )}
               </article>
             ))
