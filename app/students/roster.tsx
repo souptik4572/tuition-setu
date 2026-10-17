@@ -145,7 +145,7 @@ export function Roster({
                 <h2 id="roster-empty" className="text-[22px] font-extrabold text-ink-strong">
                   No students yet
                 </h2>
-                <p className="max-w-[400px] text-base leading-normal text-muted-foreground">Add the children you teach. Their names stay on your laptop.</p>
+                <p className="max-w-[400px] text-base leading-normal text-muted-foreground">Add the children you teach. Their names stay on your machine.</p>
                 {canEdit && (
                   <KeyLink href="/students/new" className="mt-2">
                     <Plus aria-hidden strokeWidth={2.6} />

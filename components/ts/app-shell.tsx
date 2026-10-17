@@ -4,6 +4,7 @@ import { cn } from "@/lib/utils";
 import { AppMark } from "./app-mark";
 import { DesktopNav, PhoneNav } from "./nav-links";
 import { StatusPill } from "./status-pill";
+import { ThemeToggle } from "./theme-toggle";
 
 const PREVIEW_TEXT = "Preview — please use sample or fictional student data. This instance may be reset after the hackathon.";
 
@@ -41,6 +42,7 @@ export function AppShell({ children, aiName, userName, phoneNav = true }: { chil
           </div>
           <DesktopNav />
           <div className="flex items-center gap-3">
+            <ThemeToggle />
             {aiName && <StatusPill mode={hosted ? "hosted" : "local"} name={aiName} />}
             {userName && (
               <span

@@ -2,7 +2,10 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
-/* Design tokens: Board 0 "Copybook Keys" (IMPL §6.1). Dark mode follows the OS; there is no manual toggle. */
+/* `dark:` follows <html data-theme>, which the head script sets from the saved choice or the OS (IMPL D-39). */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+/* Design tokens: Board 0 "Copybook Keys" (IMPL §6.1). */
 :root {
   --paper: #ffffff;
   --surface: #ffffff;
@@ -67,50 +70,48 @@
   --radius: 12px;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --paper: #141718;
-    --surface: #1e2224;
-    --field: #262b2e;
-    --hairline: #353b3e;
-    --field-border: #7a8388;
-    --ink: #ecedee;
-    --ink-strong: #f5f6f6;
-    --muted-foreground: #a3abaf;
+:root[data-theme="dark"] {
+  --paper: #141718;
+  --surface: #1e2224;
+  --field: #262b2e;
+  --hairline: #353b3e;
+  --field-border: #7a8388;
+  --ink: #ecedee;
+  --ink-strong: #f5f6f6;
+  --muted-foreground: #a3abaf;
 
-    --sky: #49c0f8;
-    --sky-lip: #2a8fc4;
-    --on-sky: #0b2a3d;
-    --ocean: #7fd3fa;
-    --on-ocean: #0b2a3d;
-    --sky-tint: #13344a;
-    --on-sky-tint: #9edcfb;
+  --sky: #49c0f8;
+  --sky-lip: #2a8fc4;
+  --on-sky: #0b2a3d;
+  --ocean: #7fd3fa;
+  --on-ocean: #0b2a3d;
+  --sky-tint: #13344a;
+  --on-sky-tint: #9edcfb;
 
-    --orange: #ffb54d;
-    --on-orange: #141718;
-    --highlight: #6b4210;
-    --on-highlight: #ffe6c4;
-    --on-mark: #ffe6c4;
-    --orange-tint: #3d2a10;
+  --orange: #ffb54d;
+  --on-orange: #141718;
+  --highlight: #6b4210;
+  --on-highlight: #ffe6c4;
+  --on-mark: #ffe6c4;
+  --orange-tint: #3d2a10;
 
-    --green: #58cc02;
-    --green-lip: #3f8f02;
-    --on-green: #141718;
-    --bubble: #24411a;
-    --bubble-meta: #a3abaf;
+  --green: #58cc02;
+  --green-lip: #3f8f02;
+  --on-green: #141718;
+  --bubble: #24411a;
+  --bubble-meta: #a3abaf;
 
-    --caution: #3a3010;
-    --on-caution: #ffe08a;
-    --caution-border: #8a7224;
-    --danger: #ff8a80;
-    --danger-lip: #c25e56;
-    --on-danger: #141718;
-    --danger-tint: #3d1a1a;
-    --on-danger-tint: #ffb4ab;
-    --sent: #ecedee;
-    --on-sent: #141718;
-    --skip-border: #4a5156;
-  }
+  --caution: #3a3010;
+  --on-caution: #ffe08a;
+  --caution-border: #8a7224;
+  --danger: #ff8a80;
+  --danger-lip: #c25e56;
+  --on-danger: #141718;
+  --danger-tint: #3d1a1a;
+  --on-danger-tint: #ffb4ab;
+  --sent: #ecedee;
+  --on-sent: #141718;
+  --skip-border: #4a5156;
 }
 
 @theme inline {
@@ -272,12 +273,25 @@
     font-weight: 500;
   }
 
+  /* The theme toggle's cross-fade: slow and even, so switching feels calm. */
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation-duration: 600ms;
+    animation-timing-function: ease-in-out;
+  }
+
   @media (prefers-reduced-motion: reduce) {
     *,
     ::before,
     ::after {
       animation: none !important;
       transition: none !important;
+    }
+    /* A separate rule: browsers that don't know these pseudo-elements would drop the whole list above. */
+    ::view-transition-group(root),
+    ::view-transition-old(root),
+    ::view-transition-new(root) {
+      animation: none !important;
     }
   }
 }

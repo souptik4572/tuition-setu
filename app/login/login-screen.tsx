@@ -215,7 +215,7 @@ export function LoginScreen({ firstName, kind, lockedForMs, reset }: { firstName
 
           <p className="mt-auto flex items-center justify-center gap-2 text-sm leading-[1.45] text-muted-foreground lg:mt-0">
             <Lock aria-hidden className="size-[18px] shrink-0" strokeWidth={2.4} />
-            Your students&apos; details stay on your laptop
+            Your students&apos; details stay on your machine
           </p>
         </section>
       </main>

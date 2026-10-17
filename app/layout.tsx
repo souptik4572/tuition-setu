@@ -1,4 +1,6 @@
 import type { Metadata, Viewport } from "next";
+import { ThemeSync } from "@/components/ts/theme-toggle";
+import { THEME_SCRIPT } from "@/lib/client/theme";
 import { baloo, balooDa, nunito } from "./fonts";
 import "./globals.css";
 
@@ -13,8 +15,15 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className={`${nunito.variable} ${baloo.variable} ${balooDa.variable} h-full antialiased`}>
-      <body className="min-h-full">{children}</body>
+    // suppressHydrationWarning: THEME_SCRIPT sets data-theme on <html> before React hydrates.
+    <html lang="en" className={`${nunito.variable} ${baloo.variable} ${balooDa.variable} h-full antialiased`} suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
+      </head>
+      <body className="min-h-full">
+        <ThemeSync />
+        {children}
+      </body>
     </html>
   );
 }

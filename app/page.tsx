@@ -4,6 +4,7 @@ import { AppShell } from "@/components/ts/app-shell";
 import { Banner } from "@/components/ts/banner";
 import { Key, KeyLink } from "@/components/ts/key";
 import { StatusPill } from "@/components/ts/status-pill";
+import { ThemeToggle } from "@/components/ts/theme-toggle";
 import { getHealth } from "@/lib/ai/health";
 import { requirePageMember } from "@/lib/auth/require-member";
 import { env } from "@/lib/env";
@@ -61,6 +62,7 @@ export default async function Home() {
             <StatusPill mode={hosted ? "hosted" : "local"} name={shell.aiName} className="lg:hidden" />
             <p className="hidden text-[17px] text-muted-foreground lg:block">Week of {range}</p>
           </div>
+          <ThemeToggle className="-mr-2 size-12 shrink-0 lg:hidden" />
         </header>
 
         <div className="flex flex-col gap-6 lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(320px,400px)] lg:items-start lg:gap-8">
@@ -146,7 +148,7 @@ export default async function Home() {
                 {health.reachable ? <Laptop className="size-6" strokeWidth={2.2} /> : <TriangleAlert className="size-6" strokeWidth={2.2} />}
               </span>
               <span className="flex flex-col">
-                <span className="text-base font-extrabold text-ink-strong">{hosted ? `AI · ${shell.aiName}` : `On your laptop · ${shell.aiName}`}</span>
+                <span className="text-base font-extrabold text-ink-strong">{hosted ? `AI · ${shell.aiName}` : `On your machine · ${shell.aiName}`}</span>
                 <span className={cn("text-[15px]", health.reachable ? "text-ocean" : "text-on-caution")}>{health.reachable ? "AI engine running" : "AI engine is off"}</span>
               </span>
             </section>
