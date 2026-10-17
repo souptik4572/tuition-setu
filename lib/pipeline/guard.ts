@@ -35,7 +35,7 @@ const ARTEFACTS = /[{}]|\bFACTS\b|\bJSON\b|as an AI/gi;
 
 /**
  * S9: checks a draft body against the facts it was written from (§S9). Any `critical` or `flag`
- * issue flags the draft; it can then be approved only after an edit that passes, or Send anyway.
+ * issue flags the draft; it can then be approved only after an edit that passes, or once the tutor dismisses the warning.
  */
 export function guard(
   body: string,

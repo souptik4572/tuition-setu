@@ -8,7 +8,7 @@ TuitionSetu does the Sunday part:
 
 1. **She types the note as she always does**, on her phone or laptop, right after class.
 2. **The laptop reads it** with a local model: who each line is about, scores, homework, attendance. Anything it isn't sure of (a name it doesn't know, a score without a total) waits in **Needs you**; it never guesses.
-3. **On report day it writes each parent's update** in the parent's language and checks it against her notes: every number must come from them, no other child may be named, and the language must be right. A number the model made up is highlighted, and the update can't be approved until she fixes it or dismisses the warning herself.
+3. **On report day it writes each parent's update** in the parent's language and checks it against her notes: every number must come from them, no other child may be named, and the language must be right. A number the model made up is highlighted and blocks approval until she edits the update (the check runs again) or, if it's right after all, dismisses the warning. A dismissal is recorded and can be undone.
 4. **She reads, approves and taps Send on WhatsApp.** WhatsApp opens with the message ready; she presses Send herself.
 
 Children's details never leave the laptop. There is no cloud account, no API key and no per-message cost.
@@ -60,7 +60,7 @@ flowchart LR
   E --> F["S8 Draft 🤖<br/>body only, parent's language"]
   F --> G["S9 Guard (code)<br/>numbers · names · language"]
   G --> H["S10 Assemble (code)<br/>title · greeting · sign-off"]
-  H --> I[Tutor approves] --> J[WhatsApp]
+  H --> I["Tutor reviews<br/>edit · dismiss a flag · approve"] --> J[WhatsApp]
 ```
 
 **The model writes; code checks.** Two model calls do the language work: reading shorthand and writing a warm paragraph in Bengali. Everything a parent could act on is code: the numbers, the names, the percentages and the trend are worked out from the notes, and the guard compares every number in the draft with them, including Bengali and Devanagari digits. The greeting, fee reminder and sign-off come from templates, never from the model.

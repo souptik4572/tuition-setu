@@ -145,13 +145,13 @@ describe("out of date, approve and send", () => {
     const { ctx, riya, cycle, addNote } = await week();
     script = { chunks: [BODY] };
     const { done } = await generate(cycle.id, riya.id);
-    expect(await approveDraft(done.draft.id, { override: false })).toEqual({ ok: true, data: null });
+    expect(await approveDraft(done.draft.id)).toEqual({ ok: true, data: null });
 
     await addNote("Riya ch5 retest 15/20", 15, 20);
     expect(await getDraft(ctx, done.draft.id)).toMatchObject({ status: "stale", approvedBy: null, approvedAt: null });
     const events = await withDb(ctx, (db) => db.select().from(auditEvents).where(eq(auditEvents.workspaceId, ctx.workspaceId)));
     expect(events.map((e) => e.action)).toEqual(["draft_approved", "approval_removed"]);
-    expect(await approveDraft(done.draft.id, { override: false })).toMatchObject({ ok: false, error: { code: "conflict" } });
+    expect(await approveDraft(done.draft.id)).toMatchObject({ ok: false, error: { code: "conflict" } });
   });
 
   it("checks an edited out-of-date draft against the current facts", async () => {
@@ -163,13 +163,14 @@ describe("out of date, approve and send", () => {
     expect(await getDraft(ctx, done.draft.id)).toMatchObject({ bodyFinal: BODY.replace("14/20 (70%)", "15/20 (75%)"), status: "ready" });
   });
 
-  it("needs Send anyway for a flagged draft, then marks it sent; a sent draft never goes out of date", async () => {
+  it("won't approve a flagged draft until its warning is dismissed, then marks it sent; a sent draft never goes out of date", async () => {
     const { ctx, riya, cycle, addNote } = await week();
     script = { chunks: [BODY.replace("14/20", "18/20")] };
     const { done } = await generate(cycle.id, riya.id);
     expect(await markSent(done.draft.id)).toMatchObject({ ok: false });
-    expect(await approveDraft(done.draft.id, { override: false })).toMatchObject({ ok: false, error: { code: "conflict" } });
-    expect(await approveDraft(done.draft.id, { override: true })).toEqual({ ok: true, data: null });
+    expect(await approveDraft(done.draft.id)).toMatchObject({ ok: false, error: { code: "conflict" } });
+    await dismissFlag(done.draft.id);
+    expect(await approveDraft(done.draft.id)).toEqual({ ok: true, data: null });
     expect(await getDraft(ctx, done.draft.id)).toMatchObject({ status: "approved", override: true });
     expect(await markSent(done.draft.id)).toEqual({ ok: true, data: null });
 
@@ -190,7 +191,7 @@ describe("out of date, approve and send", () => {
     expect(await getDraft(ctx, id)).toMatchObject({ status: "flagged", override: false });
 
     await dismissFlag(id);
-    expect(await approveDraft(id, { override: false })).toEqual({ ok: true, data: null });
+    expect(await approveDraft(id)).toEqual({ ok: true, data: null });
     expect(await getDraft(ctx, id)).toMatchObject({ status: "approved", override: true });
     await unapproveDraft(id);
     expect(await getDraft(ctx, id)).toMatchObject({ status: "ready", override: true });

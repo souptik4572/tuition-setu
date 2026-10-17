@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowLeft, Check, CircleHelp, History, MessageCircle, Pencil, RefreshCw, SkipForward, Square, ThumbsUp, TriangleAlert, Undo2, UserCheck, X } from "lucide-react";
+import { ArrowLeft, Check, CircleHelp, History, MessageCircle, Pencil, RefreshCw, SkipForward, Square, ThumbsUp, Undo2, UserCheck, X } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useRef, useState, useTransition, type ReactNode } from "react";
@@ -287,7 +287,7 @@ function StudentUpdate({
   const [actionError, setActionError] = useState<string | null>(null);
   const [editing, setEditing] = useState(false);
   const [text, setText] = useState("");
-  const [confirm, setConfirm] = useState<"override" | "rewrite" | null>(null);
+  const [confirmRewrite, setConfirmRewrite] = useState(false);
   const [sentPrompt, setSentPrompt] = useState(false);
 
   const run = (action: () => Promise<ActionResult<unknown>>, after?: () => void) =>
@@ -425,7 +425,7 @@ function StudentUpdate({
           </Key>
         </div>
       );
-    const rewrite = () => (draft.edited ? setConfirm("rewrite") : onWrite());
+    const rewrite = () => (draft.edited ? setConfirmRewrite(true) : onWrite());
     return (
       <div className="flex flex-col gap-3">
         <div className="flex flex-wrap gap-2.5">
@@ -452,15 +452,9 @@ function StudentUpdate({
           </Key>
         </div>
         {status === "ready" && (
-          <Key size="big" onClick={() => run(() => approveDraft(draft.id, { override: false }))} disabled={disabled}>
+          <Key size="big" onClick={() => run(() => approveDraft(draft.id))} disabled={disabled}>
             <Check aria-hidden strokeWidth={2.6} />
             {pending ? "Approving…" : "Approve"}
-          </Key>
-        )}
-        {status === "flagged" && (
-          <Key variant="secondary" size="big" onClick={() => setConfirm("override")} disabled={disabled}>
-            <TriangleAlert aria-hidden strokeWidth={2.4} />
-            Send anyway…
           </Key>
         )}
         {status === "stale" && <span className={helpClass}>Approve is off until the update matches your notes.</span>}
@@ -595,31 +589,25 @@ function StudentUpdate({
       )}
 
       <Modal
-        open={confirm !== null}
-        onOpenChange={(open) => !open && setConfirm(null)}
-        title={confirm === "override" ? "Send anyway?" : "Write it again?"}
+        open={confirmRewrite}
+        onOpenChange={setConfirmRewrite}
+        title="Write it again?"
         icon={
           <span aria-hidden className={modalIcon("plain")}>
-            {confirm === "override" ? <TriangleAlert strokeWidth={2.4} /> : <RefreshCw strokeWidth={2.4} />}
+            <RefreshCw strokeWidth={2.4} />
           </span>
         }
       >
-        <p className="text-[17px] leading-normal text-muted-foreground">
-          {confirm === "override"
-            ? `${blocking[0]?.message ?? "Something here doesn't match your notes"}. Approve ${name}'s update as it is? This is noted against the update.`
-            : `You edited this update. Writing it again will replace your edits.`}
-        </p>
+        <p className="text-[17px] leading-normal text-muted-foreground">You edited this update. Writing it again will replace your edits.</p>
         <div className="flex flex-col gap-3">
           <Key
             size="big"
             onClick={() => {
-              const which = confirm;
-              setConfirm(null);
-              if (which === "override" && draft) run(() => approveDraft(draft.id, { override: true }));
-              else onWrite();
+              setConfirmRewrite(false);
+              onWrite();
             }}
           >
-            {confirm === "override" ? "Send anyway" : "Write again"}
+            Write again
           </Key>
           <ModalClose asChild>
             <Key variant="secondary" size="big">

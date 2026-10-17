@@ -49,18 +49,16 @@ export async function editDraft(id: string, body: string): Promise<ActionResult<
   });
 }
 
-/** S11: a checked draft, one whose flag was dismissed, or a flagged one with Send anyway (recorded as an override). Never an out-of-date one. */
-export async function approveDraft(id: string, opts: { override: boolean }): Promise<ActionResult<null>> {
+/** S11: a checked draft, or one whose flag the tutor dismissed. Never a flagged or out-of-date one. */
+export async function approveDraft(id: string): Promise<ActionResult<null>> {
   return asMember("teacher", CHANGE, async (ctx) => {
     const result = await withDb(ctx, async (): Promise<ActionResult<null>> => {
       const draft = await getDraft(ctx, id);
       if (!draft) return GONE;
       if (draft.status === "stale") return conflict("Approve is off until the update matches your notes. Write it again first.");
-      if (draft.status === "flagged" && !opts.override) return conflict("Fix the flagged part, or choose Send anyway.");
-      if (draft.status !== "ready" && draft.status !== "flagged") return conflict("This update can't be approved now.");
-      const override = draft.override || draft.status === "flagged";
-      await updateDraft(ctx, id, { status: "approved", override, approvedBy: ctx.memberId, approvedAt: new Date().toISOString() });
-      if (draft.status === "flagged") await audit(ctx, "guard_override", { table: "drafts", id });
+      if (draft.status === "flagged") return conflict("Fix the flagged part, or dismiss the warning if it's right.");
+      if (draft.status !== "ready") return conflict("This update can't be approved now.");
+      await updateDraft(ctx, id, { status: "approved", approvedBy: ctx.memberId, approvedAt: new Date().toISOString() });
       await audit(ctx, "draft_approved", { table: "drafts", id });
       return { ok: true, data: null };
     });
