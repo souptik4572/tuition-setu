@@ -16,7 +16,8 @@
     "db:seed": "tsx --conditions=react-server scripts/seed.ts",
     "reset-pin": "tsx --conditions=react-server scripts/reset-pin.ts",
     "setup": "./setup.sh",
-    "models": "tsx --conditions=react-server scripts/models.ts"
+    "models": "tsx --conditions=react-server scripts/models.ts",
+    "eval": "tsx --conditions=react-server evals/run.ts"
   },
   "dependencies": {
     "better-sqlite3": "^13.0.3",

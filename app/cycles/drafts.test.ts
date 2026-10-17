@@ -100,7 +100,7 @@ describe("writing an update", () => {
     expect(done.draft.message).toBe(`*Weekly update — Riya (12–18 Oct)*\nHello Mrs Sen,\n\n${BODY}\n\n— Mita Ma'am`);
 
     const stored = await getDraft(ctx, done.draft.id);
-    expect(stored).toMatchObject({ bodyModel: BODY, language: "en", status: "ready", promptVersion: "v1", factsJson: { assessments: [{ scored: 14, max: 20, pct: 70 }] } });
+    expect(stored).toMatchObject({ bodyModel: BODY, language: "en", status: "ready", promptVersion: "v2", factsJson: { assessments: [{ scored: 14, max: 20, pct: 70 }] } });
     expect((await getCycle(ctx, cycle.id))?.status).toBe("reviewing");
     expect(lastPrompt).toMatchObject({ task: "draft", temperature: 0.4 });
     expect(lastPrompt!.prompt).toContain('"scored": 14');

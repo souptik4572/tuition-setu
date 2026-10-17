@@ -70,8 +70,8 @@ describe("validate", () => {
     expect(v[0].flags).toEqual([]);
   });
 
-  it("V6: turns each line about no one into an entry of its own", () => {
-    const v = run("whole batch slow in fractions", [], ["whole batch slow in fractions", " "]);
+  it("V6: turns each line about no one into an entry of its own, and drops one that isn't in the note", () => {
+    const v = run("whole batch slow in fractions", [], ["whole batch slow in fractions", " ", "Class date: 2026-10-15   Batch: not given"]);
     expect(v).toEqual([expect.objectContaining({ name: "", flags: [{ code: "unattributed", blocking: true }] })]);
     expect(v[0].payload.source_span).toBe("whole batch slow in fractions");
   });

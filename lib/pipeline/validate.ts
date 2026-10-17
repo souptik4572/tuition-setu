@@ -92,14 +92,12 @@ export function validate(rawText: string, result: ExtractionResult): ValidatedEn
     if (v.payload.fee_mentioned) v.flags.push({ code: "fee_prompt", blocking: false });
   }
 
+  // A line about no one that isn't in the note (models sometimes echo the prompt's "Class date:"
+  // header) holds nothing an update could use, so it's dropped rather than asked about (IMPL M7).
   const unattributed = result.unattributed
     .map((line) => line.trim())
-    .filter(Boolean)
-    .map((line): ValidatedEntry => {
-      const flags: Flag[] = [{ code: "unattributed", blocking: true }];
-      if (!note.includes(plain(line))) flags.push({ code: "unsupported_entry", blocking: true });
-      return { name: "", payload: { ...UNKNOWN_ENTRY, name_as_written: "", source_span: line }, flags };
-    });
+    .filter((line) => line && note.includes(plain(line)))
+    .map((line): ValidatedEntry => ({ name: "", payload: { ...UNKNOWN_ENTRY, name_as_written: "", source_span: line }, flags: [{ code: "unattributed", blocking: true }] }));
 
   return [...entries, ...unattributed];
 }

@@ -1,0 +1,23 @@
+{
+  "entries": [
+    {
+      "student": "Kabir Mehta",
+      "assessments": [
+        {
+          "scored": 11,
+          "max": 15
+        }
+      ]
+    },
+    {
+      "student": "Ishita Roy",
+      "assessments": []
+    },
+    {
+      "student": "Payel Dutta",
+      "assessments": [],
+      "attendance": "late"
+    }
+  ],
+  "unattributedCount": 0
+}

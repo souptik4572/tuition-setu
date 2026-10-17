@@ -1,0 +1,19 @@
+{
+  "entries": [
+    {
+      "student": "Tanmoy Ghosh",
+      "assessments": [
+        {
+          "scored": 18,
+          "max": 25
+        }
+      ]
+    },
+    {
+      "student": "Riya Sen",
+      "assessments": [],
+      "attendance": "absent"
+    }
+  ],
+  "unattributedCount": 0
+}

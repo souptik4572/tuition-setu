@@ -87,6 +87,7 @@ flowchart LR
 | `./start.sh` / `./start.sh --lan` | Start TuitionSetu (and Ollama, if it isn't running) |
 | `npm run reset-pin` | Choose a new PIN or passphrase on the laptop; every device is signed out |
 | `npm test` | Run the tests |
+| `npm run eval -- --model <name>` | Score how well a model reads the sample notes in `evals/fixtures` ([results](./evals/results/summary.md)) |
 | `npm run dev` | Development server |
 
 ## Status

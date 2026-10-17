@@ -1,8 +1,9 @@
 // Which models to use (§11.2), when `.env.local` doesn't say: MODEL_EXTRACT, MODEL_DRAFT and
 // MODEL_VISION replace the defaults below, MODEL_QUALITY_DRAFT the quality model, and
-// MODEL_ALTERNATES the reading candidates (`modelFor` and friends in ./index). Provisional until
-// the M7 eval measures the candidates. The defaults use the `gemma4:latest` tag, which Ollama
-// currently points at the 4B "e4b" build. setup.sh (M8) reads these too.
+// MODEL_ALTERNATES the reading candidates (`modelFor` and friends in ./index). The defaults use
+// the `gemma4:latest` tag, which Ollama currently points at the 4B "e4b" build. The M7 eval kept
+// it for reading: as accurate as qwen3.5:9b on the fixtures and three times faster
+// (evals/results/summary.md). setup.sh (M8) reads these too.
 
 export type ModelTask = "extract" | "draft" | "vision";
 
@@ -27,5 +28,5 @@ export const DOWNLOAD_GB: Record<string, number> = {
   "gemma4:12b": 7.7,
 };
 
-/** Models a failed note can be read again with ("Try the other model"), when one is installed (M7 revisits the list). */
+/** Models a failed note can be read again with ("Try the other model"), when one is installed. */
 export const READING_CANDIDATES = ["gemma4:latest", "gemma4:e4b", "gemma4:12b", "qwen3.5:9b"];
