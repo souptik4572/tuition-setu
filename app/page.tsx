@@ -1,4 +1,4 @@
-import { ChevronRight, Laptop, PenLine, TriangleAlert } from "lucide-react";
+import { ChevronRight, Laptop, PenLine, Smartphone, TriangleAlert } from "lucide-react";
 import Link from "next/link";
 import { AppShell } from "@/components/ts/app-shell";
 import { Banner } from "@/components/ts/banner";
@@ -62,7 +62,13 @@ export default async function Home() {
             <StatusPill mode={hosted ? "hosted" : "local"} name={shell.aiName} className="lg:hidden" />
             <p className="hidden text-[17px] text-muted-foreground lg:block">Week of {range}</p>
           </div>
-          <ThemeToggle className="-mr-2 size-12 shrink-0 lg:hidden" />
+          {/* Phones have no top bar, so the phone guide and the theme sit here. */}
+          <div className="-mr-2 flex shrink-0 lg:hidden">
+            <Link href="/phone" aria-label="Use it on your phone" className="flex size-12 items-center justify-center rounded-md text-ink-strong hover:bg-field">
+              <Smartphone aria-hidden className="size-6" strokeWidth={2.4} />
+            </Link>
+            <ThemeToggle className="size-12" />
+          </div>
         </header>
 
         <div className="flex flex-col gap-6 lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(320px,400px)] lg:items-start lg:gap-8">

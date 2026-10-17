@@ -38,6 +38,8 @@ Open **http://localhost:3000** and the setup wizard walks you through your name,
 
 It prints an address such as `http://192.168.1.20:3000`. Open it on a phone on the same Wi-Fi and sign in with your PIN. The phone talks only to the laptop; the laptop talks only to Ollama on itself.
 
+The **Phone** page in the app walks through it step by step for iPhone and Android: it shows this laptop's exact address, says whether phones can reach it yet, and covers adding it to the home screen and what to do if it doesn't open.
+
 ### Choose the AI models
 
 Models are set in `.env.local`. Edit it and restart TuitionSetu; no rebuild is needed. Pull a model first with `ollama pull <name>`.
