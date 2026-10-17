@@ -1,5 +1,5 @@
-import { and, eq, ne } from "drizzle-orm";
-import { cycleRangeFor, formatRange } from "@/lib/util/dates";
+import { and, desc, eq, ne } from "drizzle-orm";
+import { addDays, cycleRangeFor, formatRange } from "@/lib/util/dates";
 import { withDb } from "../client";
 import { cycles } from "../schema";
 import type { DbCtx } from "../types";
@@ -20,7 +20,10 @@ export async function openCycleFor(ctx: DbCtx, classDate: string): Promise<Cycle
   return withDb(ctx, async (db) => {
     const open = await getOpenCycle(ctx);
     if (open) return open;
-    const { from, to } = cycleRangeFor(classDate);
+    // A completed week keeps its dates: a note typed after "Complete week" (on report day, say) starts the next week.
+    const [last] = await db.select().from(cycles).where(eq(cycles.workspaceId, ctx.workspaceId)).orderBy(desc(cycles.endsOn)).limit(1);
+    const after = last ? addDays(last.endsOn, 1) : classDate;
+    const { from, to } = cycleRangeFor(after > classDate ? after : classDate);
     const [created] = await db
       .insert(cycles)
       .values({ workspaceId: ctx.workspaceId, label: formatRange(from, to), startsOn: from, endsOn: to })

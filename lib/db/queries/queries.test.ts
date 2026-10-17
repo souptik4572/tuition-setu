@@ -159,6 +159,13 @@ describe("cycles and drafts", () => {
     expect(next).toMatchObject({ startsOn: "2026-10-19", status: "open" });
   });
 
+  it("starts the next week for a note dated inside a week that's already complete", async () => {
+    const a = await newWorkspace("A");
+    const week = await openCycleFor(a, "2026-10-15");
+    await setCycleStatus(a, week.id, "completed");
+    expect(await openCycleFor(a, "2026-10-17")).toMatchObject({ startsOn: "2026-10-19", endsOn: "2026-10-25", label: "19–25 Oct", status: "open" });
+  });
+
   it("refuses a second open cycle at the database level", async () => {
     const a = await newWorkspace("A");
     await openCycleFor(a, "2026-10-15");

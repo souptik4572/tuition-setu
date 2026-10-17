@@ -33,6 +33,13 @@ Parents expect a WhatsApp update every week, in Bengali, Hindi or English. So on
 
 ## Demo
 
+<!-- TODO: upload docs/demo.mp4 to YouTube (unlisted is fine) and put its URL here. -->
+{% embed https://www.youtube.com/watch?v=TODO %}
+
+The four-minute video above is the whole thing, start to finish, recorded from the real app and model: setup on a fresh clone, the setup wizard, a note with a nickname, a new student and a missing total, every parent's update, a flagged number, sending, completing the week, the sent messages, the phone, and dark mode. Model waits are sped up 2× where a badge says so.
+
+The short version:
+
 ![A typed note about five students becomes checked WhatsApp updates: Bengali streaming, a wrong number flagged, approved and sent](TODO-upload-docs/demo.gif)
 
 In the GIF: Mita types one note about five students. Gemma reads it in about 17 seconds and writes Riya's update in Bengali. A score changed by mistake (80% → 90%) is flagged before anyone sees it. She approves, WhatsApp opens with the message ready, and she presses Send herself. Everything runs on one laptop, with no internet needed.
