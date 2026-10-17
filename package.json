@@ -4,15 +4,19 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "dev:lan": "next dev -H 0.0.0.0",
     "build": "next build",
-    "start": "next start",
+    "start": "next start -H 127.0.0.1",
+    "start:lan": "next start -H 0.0.0.0",
     "lint": "eslint",
     "test": "vitest run",
     "test:watch": "vitest",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "tsx --conditions=react-server scripts/migrate.ts",
     "db:seed": "tsx --conditions=react-server scripts/seed.ts",
-    "reset-pin": "tsx --conditions=react-server scripts/reset-pin.ts"
+    "reset-pin": "tsx --conditions=react-server scripts/reset-pin.ts",
+    "setup": "./setup.sh",
+    "models": "tsx --conditions=react-server scripts/models.ts"
   },
   "dependencies": {
     "better-sqlite3": "^13.0.3",

@@ -164,6 +164,9 @@ export function StudentForm({
         const result = student ? await updateStudent(student.id, input) : await createStudent(input);
         if (!result.ok) return setError(result.error.message);
         if (another) {
+          // Let a focused field finish its blur first (the phone field tidies its value then);
+          // blurring after the reset would write the old student's value back.
+          (document.activeElement as HTMLElement | null)?.blur();
           setValues(startValues(undefined, defaultLanguage));
           setTried(false);
           document.getElementById("student-fullName")?.focus();
