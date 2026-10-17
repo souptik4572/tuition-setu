@@ -76,6 +76,13 @@ describe("validate", () => {
     expect(v[0].payload.source_span).toBe("whole batch slow in fractions");
   });
 
+  it("calls an unnamed test a test, not the model's placeholder", () => {
+    const span = "Tanmoy fractions 18/25";
+    const score = { scored: 18, max: 25, raw: "18/25" };
+    const [v] = run(span, [entry({ name_as_written: "Tanmoy", source_span: span, assessments: [{ label: "unknown", ...score }, { label: " ", ...score }, { label: "fractions", ...score }] })]);
+    expect(v.payload.assessments.map((a) => a.label)).toEqual(["test", "test", "fractions"]);
+  });
+
   it("V7: asks about fees without holding the entry back", () => {
     expect(run("Riya ch5 test 14/20 fees due", [entry({ fee_mentioned: true })])[0].flags).toEqual([{ code: "fee_prompt", blocking: false }]);
   });

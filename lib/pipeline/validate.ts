@@ -6,6 +6,9 @@ export type ValidatedEntry = { name: string; payload: ExtractedEntry; flags: Fla
 
 const plain = (s: string) => normalizeDigits(s).toLowerCase().replace(/\s+/g, " ").trim();
 
+// What models write as a test's name when the note doesn't give one; it would show as "unknown 18/25".
+const PLACEHOLDER_LABEL = /^(unknown|none|n\/?a|null|-)?$/i;
+
 const UNKNOWN_ENTRY: Omit<ExtractedEntry, "name_as_written" | "source_span"> = {
   topics: [],
   assessments: [],
@@ -84,6 +87,7 @@ export function validate(rawText: string, result: ExtractionResult): ValidatedEn
 
   const entries = [...byName.values(), ...nameless];
   for (const v of entries) {
+    v.payload.assessments = v.payload.assessments.map((a) => (PLACEHOLDER_LABEL.test(a.label.trim()) ? { ...a, label: "test" } : a));
     v.payload.assessments.forEach((a, index) => {
       if (a.scored === null) return;
       if (a.max === null) v.flags.push({ code: "missing_total", blocking: true, data: { index } });

@@ -514,6 +514,7 @@ function StudentUpdate({
             header={`To ${parent}`}
             message={draft.message}
             language={student.language}
+            meta={status === "sent" && draft.sentAt ? `Sent ${draft.sentAt}` : undefined}
             bodyOffset={draft.bodyOffset}
             highlights={draft.override ? undefined : issues.filter((i) => i.end > i.start && i.severity !== "warning").map((i) => ({ start: i.start, end: i.end, label: i.message }))}
           />

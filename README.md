@@ -2,6 +2,8 @@
 
 **Turn a private tutor's class notes into WhatsApp updates for parents — written by an open-weight model on the tutor's own laptop, and checked by code before anything is sent.**
 
+![A typed note about five students becomes WhatsApp updates: Riya's in Bengali streams in, a wrong number is flagged, and the tutor approves and sends](docs/demo.gif)
+
 Mita teaches Maths to 30 children from home. After each batch she jots shorthand like `Riya ch5 test 14/20 careless in algebra, missed HW twice; Arjun absent`. On Sunday evening she spends two hours turning a week of those notes into a message for every parent, in English, Bengali or Hindi.
 
 TuitionSetu does the Sunday part:
@@ -25,6 +27,8 @@ git clone https://github.com/souptik4572/tuition-setu.git && cd tuition-setu && 
 Open **http://localhost:3000** and the setup wizard walks you through your name, a PIN, a check of the AI engine and your students.
 
 `./setup.sh` checks Node and Ollama, installs packages, creates `.env.local`, downloads the AI model (about 6.6 GB, once), creates the database and builds the app. It asks whether to add six fictional sample students to try things out. It's safe to run again, and running it after `git pull` applies the update. Flags: `--yes` (no questions), `--skip-models`, `--lan`.
+
+![./setup.sh on a fresh clone, 17 seconds with the model already downloaded](docs/setup.gif)
 
 ### Use it from your phone
 
@@ -76,6 +80,15 @@ flowchart LR
         WhatsApp app                 └──────────────────────────────────────┘
 ```
 
+**Choosing the model by measurement.** `npm run eval` runs the real extract, validate and resolve code over ten sample notes (Hinglish, Bengali in English letters, nicknames, misspelt names, a date that looks like a score, an unknown student):
+
+| Model | Students | Scores | Names copied as written | Median time |
+|---|---|---|---|---|
+| `gemma4:latest` (default) | 100% | 100% | 91.3% | 7.8 s |
+| `qwen3.5:9b` | 100% | 100% | 82.6% | 23.7 s |
+
+Both with extract prompt v2, on a 16 GB Mac. Every run is in [evals/results](./evals/results/summary.md).
+
 - **Privacy:** the server listens on `127.0.0.1` unless you start it with `--lan`; every page needs the PIN; the app makes no internet requests at runtime (fonts are bundled at build time); AI runs log timings and token counts, never note or message text. If the AI engine is ever pointed at another machine, the home screen shows a red warning.
 - **If the AI engine is off,** notes still save instantly and are read automatically once it's back.
 - **Stack:** Next.js 16, React 19, TypeScript, Tailwind CSS, Drizzle ORM with SQLite, Zod, Ollama.
@@ -93,6 +106,8 @@ flowchart LR
 ## Status
 
 Built for DEV's Hacktoberfest 2026 Open-Source AI Challenge (Week 2, "Side Hustle"). This is the local version's MVP: setup, students, typed notes, Needs you, drafting with the guard, the weekly review and WhatsApp sending. Not built yet: photos of the register, a settings page, the hosted version and Windows scripts. The Bengali and Hindi message templates still need a native speaker's review.
+
+The latest QA pass is in [docs/qa-2026-10-17.md](./docs/qa-2026-10-17.md).
 
 [SPEC.md](./SPEC.md) describes the full product: the pipeline rules, prompts, data model and the hosted design.
 

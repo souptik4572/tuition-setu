@@ -34,7 +34,8 @@ export function toAiError(error: unknown): AiError {
   // The openai classes all have name "Error", so they're told apart with instanceof (timeout first: it's a subclass).
   if (e.name === "TimeoutError" || error instanceof APIConnectionTimeoutError) return wrap("timeout");
   if (e.name === "AbortError" || error instanceof APIUserAbortError) return wrap("cancelled");
-  if (error instanceof APIConnectionError || (e.name === "TypeError" && /fetch failed/i.test(e.message ?? ""))) return wrap("provider_unreachable");
+  // Node's fetch says "fetch failed" when it can't connect and "terminated" when the engine goes away mid-reply.
+  if (error instanceof APIConnectionError || (e.name === "TypeError" && /fetch failed|terminated/i.test(e.message ?? ""))) return wrap("provider_unreachable");
   if (status === 404) return wrap("model_missing");
   if (status === 429) return wrap("quota");
   if (e.name === "SyntaxError") return wrap("invalid_json");

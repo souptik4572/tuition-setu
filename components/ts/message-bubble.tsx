@@ -93,10 +93,12 @@ export function Bubble({
 
 export function MessageBubble({
   header,
+  meta = "Preview · not sent",
   className,
   ...bubble
 }: {
   header: string;
+  meta?: string;
   message: string;
   language: "en" | "bn" | "hi";
   highlights?: Highlight[];
@@ -107,7 +109,7 @@ export function MessageBubble({
   return (
     <div className={cn("flex flex-col gap-2 rounded-md bg-field px-4 py-5", className)}>
       <span className="text-sm text-muted-foreground">{header}</span>
-      <Bubble {...bubble} meta="Preview · not sent" />
+      <Bubble {...bubble} meta={meta} />
     </div>
   );
 }

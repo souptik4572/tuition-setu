@@ -87,7 +87,7 @@ step "3. Packages"
 if [ -f node_modules/.package-lock.json ] && [ node_modules/.package-lock.json -nt package-lock.json ]; then
   ok "Already installed"
 else
-  npm ci --no-audit --no-fund
+  npm ci --no-audit --no-fund --loglevel=error
   ok "Installed"
 fi
 
